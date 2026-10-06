@@ -331,6 +331,44 @@ const categoryInterpretations: Record<
   },
 };
 
+const overallMessages: Record<string, string[]> = {
+  love: [
+    "The overall energy feels like you're being asked to stop chasing certainty and start paying attention to consistency. If someone wants to be in your life, you shouldn't have to solve a mystery to figure it out.",
+    "There's a strong theme of emotional clarity here. You may be entering a phase where you're less interested in potential and more interested in what someone actually shows you.",
+    "This reading feels like a reminder that love should add something to your life, not make you question your worth every other Tuesday.",
+  ],
+
+  career: [
+    "The overall energy feels like movement. You don't need to have your entire career mapped out right now — you just need to choose the next direction worth exploring.",
+    "There's a strong theme of trusting your own abilities. You may be closer to being ready than you think.",
+    "This reading points toward growth through action. Stop waiting for the perfect version of yourself to show up before you start.",
+  ],
+
+  friendship: [
+    "The overall energy is about reciprocity. The people meant to stay in your life won't require you to constantly prove that you deserve a place in theirs.",
+    "There's a theme of becoming more intentional about who gets your energy. Not every friendship needs to last forever to have mattered.",
+    "This reading feels like a reminder to value the people who make you feel like yourself instead of performing a version of yourself for them.",
+  ],
+
+  life: [
+    "The overall energy feels like transition. You may not have everything figured out, but you're clearly not the same person you were a year ago.",
+    "There's a strong theme of trusting your own timing. You don't need to have someone else's life by a certain age.",
+    "This reading feels like permission to stop treating uncertainty as failure. Sometimes you're simply in the middle of becoming.",
+  ],
+
+  specific: [
+    "The overall energy suggests that the answer may not be as black-and-white as you hoped. Give yourself permission to sit with the uncertainty before making a decision.",
+    "There's a strong theme of trusting yourself. You can listen to other people's opinions without handing them the steering wheel.",
+    "This situation may be teaching you something about what you actually want — not just what you thought you wanted.",
+  ],
+
+  random: [
+    "The cards basically said: slow down, listen to yourself, and stop pretending you don't already know something important.",
+    "Your cards are giving main-character-in-a-transition-arc energy. Something is shifting, even if you can't fully see where it's going yet.",
+    "The overall vibe? Less overthinking. More living. You can figure some things out while you're actually moving.",
+  ],
+};
+
 const positions = [
   {
     name: "Past",
@@ -368,6 +406,12 @@ export default function ResultPage() {
   }
 
   const selectedCards = reading.selectedCards || [];
+
+  const messages =
+  overallMessages[reading.category] || overallMessages.random;
+
+const overallMessage =
+  messages[selectedCards.reduce((sum: number, card: number) => sum + card, 0) % messages.length];
 
   return (
     <main className="min-h-screen bg-[#100c18] text-[#f8f1e7]">
@@ -453,6 +497,32 @@ export default function ResultPage() {
             }
           )}
         </div>
+
+        {/* OVERALL ENERGY */}
+<motion.div
+  initial={{ opacity: 0, y: 25 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.8 }}
+  className="mt-16 rounded-3xl border border-purple-200/15 bg-purple-200/[0.04] p-8 text-center sm:p-10"
+>
+  <p className="text-xs uppercase tracking-[0.3em] text-purple-200/40">
+    overall energy
+  </p>
+
+  <h2 className="mt-4 font-serif text-3xl sm:text-4xl">
+    okay... here's the thing.
+  </h2>
+
+  <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-purple-100/70">
+    {overallMessage}
+  </p>
+
+  <div className="mx-auto mt-8 h-px w-16 bg-purple-200/20" />
+
+  <p className="mt-6 text-xs text-white/30">
+    past · present · future
+  </p>
+</motion.div>
 
         {/* ENDING */}
         <motion.div
