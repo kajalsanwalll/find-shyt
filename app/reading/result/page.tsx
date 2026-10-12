@@ -1,70 +1,8 @@
 "use client";
-
+import { tarotCards } from "@/lib/tarot";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-const tarotCards = [
-  {
-    name: "The Fool",
-    meaning: "new beginnings, taking a leap, trusting the journey",
-    symbol: "0",
-  },
-  {
-    name: "The Magician",
-    meaning: "confidence, potential, making things happen",
-    symbol: "I",
-  },
-  {
-    name: "The High Priestess",
-    meaning: "intuition, mystery, trusting your inner voice",
-    symbol: "II",
-  },
-  {
-    name: "The Empress",
-    meaning: "growth, creativity, abundance, softness",
-    symbol: "III",
-  },
-  {
-    name: "The Emperor",
-    meaning: "structure, stability, taking control",
-    symbol: "IV",
-  },
-  {
-    name: "The Lovers",
-    meaning: "connection, choices, alignment",
-    symbol: "VI",
-  },
-  {
-    name: "The Chariot",
-    meaning: "determination, movement, taking the reins",
-    symbol: "VII",
-  },
-  {
-    name: "Strength",
-    meaning: "inner strength, patience, courage",
-    symbol: "VIII",
-  },
-  {
-    name: "The Hermit",
-    meaning: "reflection, solitude, finding your own answer",
-    symbol: "IX",
-  },
-  {
-    name: "The Star",
-    meaning: "hope, healing, optimism, renewal",
-    symbol: "XVII",
-  },
-  {
-    name: "The Moon",
-    meaning: "uncertainty, emotions, things not being fully clear",
-    symbol: "XVIII",
-  },
-  {
-    name: "The Sun",
-    meaning: "joy, clarity, confidence, good energy",
-    symbol: "XIX",
-  },
-];
 
 const interpretations: Record<string, Record<string, string>> = {
   "The Fool": {
@@ -488,7 +426,8 @@ const overallMessage =
 
                       <p className="mt-4 text-sm leading-7 text-purple-100/80">
   {categoryInterpretations[reading.category]?.[card.name] ||
-    interpretations[card.name]?.[position.name]}
+  interpretations[card.name]?.[position.name] ||
+  `This card brings up themes of ${card.meaning}. Think about where these themes might be showing up in your life right now.`}
 </p>
                     </div>
                   </div>

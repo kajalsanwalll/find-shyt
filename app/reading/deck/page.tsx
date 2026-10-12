@@ -1,7 +1,9 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { tarotCards } from "@/lib/tarot";
 
 const cards = Array.from({ length: 7 });
 
@@ -9,8 +11,27 @@ export default function DeckPage() {
   const [shuffling, setShuffling] = useState(false);
   const [shuffled, setShuffled] = useState(false);
   const router = useRouter();
+
   const shuffleDeck = () => {
+    if (shuffling || shuffled) return;
+
     setShuffling(true);
+
+    // Randomize the complete 78-card tarot deck.
+    const shuffledDeck = [...tarotCards];
+
+    for (let i = shuffledDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledDeck[i], shuffledDeck[j]] = [
+        shuffledDeck[j],
+        shuffledDeck[i],
+      ];
+    }
+
+    sessionStorage.setItem(
+      "shuffledDeck",
+      JSON.stringify(shuffledDeck)
+    );
 
     setTimeout(() => {
       setShuffling(false);
@@ -21,7 +42,6 @@ export default function DeckPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#100c18] text-[#f8f1e7]">
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-16">
-
         {/* Header */}
 
         <motion.div
@@ -44,7 +64,7 @@ export default function DeckPage() {
           </p>
         </motion.div>
 
-        {/* Deck */}
+        {/* Animated deck */}
 
         <div className="relative mt-14 flex h-[280px] w-full items-center justify-center">
           {cards.map((_, index) => {
@@ -113,14 +133,14 @@ export default function DeckPage() {
             </p>
 
             <motion.button
-  type="button"
-  onClick={() => router.push("/reading/pick")}
-  whileHover={{ scale: 1.04 }}
-  whileTap={{ scale: 0.97 }}
-  className="rounded-full border border-white/15 px-7 py-3 text-sm transition hover:bg-white/5"
->
-  I'm ready →
-</motion.button>
+              type="button"
+              onClick={() => router.push("/reading/pick")}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              className="rounded-full border border-white/15 px-7 py-3 text-sm transition hover:bg-white/5"
+            >
+              I'm ready →
+            </motion.button>
           </motion.div>
         )}
 
