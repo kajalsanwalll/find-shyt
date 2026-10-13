@@ -9,11 +9,10 @@ const cards = Array.from({ length: 7 });
 
 export default function DeckPage() {
   const [shuffling, setShuffling] = useState(false);
-  const [shuffled, setShuffled] = useState(false);
   const router = useRouter();
 
   const shuffleDeck = () => {
-    if (shuffling || shuffled) return;
+    if (shuffling) return;
 
     setShuffling(true);
 
@@ -22,6 +21,7 @@ export default function DeckPage() {
 
     for (let i = shuffledDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
+
       [shuffledDeck[i], shuffledDeck[j]] = [
         shuffledDeck[j],
         shuffledDeck[i],
@@ -33,9 +33,9 @@ export default function DeckPage() {
       JSON.stringify(shuffledDeck)
     );
 
+    // Automatically continue when the shuffle animation finishes.
     setTimeout(() => {
-      setShuffling(false);
-      setShuffled(true);
+      router.push("/reading/pick");
     }, 1400);
   };
 
@@ -43,7 +43,6 @@ export default function DeckPage() {
     <main className="min-h-screen overflow-hidden bg-[#100c18] text-[#f8f1e7]">
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-16">
         {/* Header */}
-
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -54,18 +53,17 @@ export default function DeckPage() {
           </p>
 
           <h1 className="font-serif text-5xl sm:text-6xl">
-            {shuffled ? "pick your cards." : "let's shuffle."}
+            {shuffling ? "the universe is shuffling." : "let's shuffle."}
           </h1>
 
           <p className="mx-auto mt-5 max-w-md text-sm leading-6 text-white/40">
-            {shuffled
-              ? "Don't overthink it. Pick whatever card you're drawn to."
+            {shuffling
+              ? "trust the process. your cards are finding their place..."
               : "Take a breath. Think about your question. Then shuffle."}
           </p>
         </motion.div>
 
         {/* Animated deck */}
-
         <div className="relative mt-14 flex h-[280px] w-full items-center justify-center">
           {cards.map((_, index) => {
             const middle = (cards.length - 1) / 2;
@@ -109,40 +107,17 @@ export default function DeckPage() {
           })}
         </div>
 
-        {/* Action */}
-
-        {!shuffled ? (
-          <motion.button
-            type="button"
-            onClick={shuffleDeck}
-            disabled={shuffling}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            className="rounded-full bg-[#f8f1e7] px-8 py-4 text-sm font-medium text-[#17111f] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {shuffling ? "shuffling..." : "shuffle the deck ✦"}
-          </motion.button>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <p className="mb-5 text-sm text-white/40">
-              okay. trust your gut.
-            </p>
-
-            <motion.button
-              type="button"
-              onClick={() => router.push("/reading/pick")}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              className="rounded-full border border-white/15 px-7 py-3 text-sm transition hover:bg-white/5"
-            >
-              I'm ready →
-            </motion.button>
-          </motion.div>
-        )}
+        {/* Shuffle action */}
+        <motion.button
+          type="button"
+          onClick={shuffleDeck}
+          disabled={shuffling}
+          whileHover={!shuffling ? { scale: 1.04 } : undefined}
+          whileTap={!shuffling ? { scale: 0.97 } : undefined}
+          className="rounded-full bg-[#f8f1e7] px-8 py-4 text-sm font-medium text-[#17111f] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {shuffling ? "shuffling..." : "shuffle the deck ✦"}
+        </motion.button>
 
         <p className="mt-12 text-xs text-white/20">
           ✦ there are no wrong cards ✦
