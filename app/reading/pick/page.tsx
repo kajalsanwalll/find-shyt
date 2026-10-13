@@ -1,237 +1,168 @@
 "use client";
 
+// app/reading/pick/page.tsx
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { tarotCards } from "@/lib/tarot";
+import { motion, useReducedMotion } from "framer-motion";
+import { tarotCards, type TarotCard } from "@/lib/tarot";
+import { Shell, CardBack } from "@/components/shell";
+
+const positions = ["Past", "Present", "Future"];
 
 export default function PickPage() {
-  const [selectedCards, setSelectedCards] = useState<number[]>([]);
-  const [deck, setDeck] = useState(tarotCards);
-  const [deckLoaded, setDeckLoaded] = useState(false);
   const router = useRouter();
+  const reduce = useReducedMotion();
+  const [deck, setDeck] = useState<TarotCard[]>(tarotCards);
+  const [ready, setReady] = useState(false);
+  const [picked, setPicked] = useState<number[]>([]);
 
+  // Load the shuffled deck; if there isn't one, send them back to shuffle.
   useEffect(() => {
-    const savedDeck = sessionStorage.getItem("shuffledDeck");
-
-    if (savedDeck) {
-      try {
-        const parsedDeck = JSON.parse(savedDeck);
-
-        if (
-          Array.isArray(parsedDeck) &&
-          parsedDeck.length === tarotCards.length
-        ) {
-          setDeck(parsedDeck);
-        }
-      } catch {
-        console.error("Could not load the shuffled tarot deck.");
+    try {
+      const saved = sessionStorage.getItem("shuffledDeck");
+      const parsed = saved ? JSON.parse(saved) : null;
+      if (Array.isArray(parsed) && parsed.length === tarotCards.length) {
+        setDeck(parsed);
+        setReady(true);
+        return;
       }
+    } catch {
+      // fall through
     }
+    router.replace("/reading/deck");
+  }, [router]);
 
-    setDeckLoaded(true);
-  }, []);
+  // Warm the image cache so the reveal flip on the next page is instant.
+  useEffect(() => {
+    if (picked.length === 3) {
+      picked.forEach((i) => {
+        const img = new Image();
+        img.src = deck[i].image;
+      });
+    }
+  }, [picked, deck]);
 
-  const handleCardClick = (index: number) => {
-    if (selectedCards.includes(index)) return;
-    if (selectedCards.length >= 3) return;
-
-    setSelectedCards((current) => [...current, index]);
-  };
-
-  const positions = ["Past", "Present", "Future"];
-
-  const revealReading = () => {
-    const reading = JSON.parse(
-      sessionStorage.getItem("reading") || "{}"
+  const toggle = (i: number) =>
+    setPicked((cur) =>
+      cur.includes(i) ? cur.filter((x) => x !== i) : cur.length >= 3 ? cur : [...cur, i]
     );
 
-    sessionStorage.setItem(
-      "reading",
-      JSON.stringify({
-        ...reading,
-        selectedCards,
-      })
-    );
-
+  const reveal = () => {
+    try {
+      const reading = JSON.parse(sessionStorage.getItem("reading") || "{}");
+      sessionStorage.setItem(
+        "reading",
+        JSON.stringify({ ...reading, selectedCards: picked })
+      );
+    } catch {
+      // ignore; the result page shows its empty state
+    }
     router.push("/reading/result");
   };
 
-  if (!deckLoaded) {
+  if (!ready) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#100c18] text-[#f8f1e7]">
-        <p className="text-sm text-purple-200/60">
-          preparing your cards... ✦
-        </p>
-      </main>
+      <Shell>
+        <div className="flex min-h-screen items-center justify-center text-sm text-[#f4ead9]/60">
+          Preparing your cards…
+        </div>
+      </Shell>
     );
   }
 
+  const full = picked.length === 3;
+
   return (
-    <main className="min-h-screen overflow-hidden bg-[#100c18] text-[#f8f1e7]">
-      <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center px-6 py-16">
-        {/* Header */}
-
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <p className="mb-4 text-sm text-purple-200/50">
-            trust your first instinct.
-          </p>
-
-          <h1 className="font-serif text-5xl sm:text-6xl">
-            Pick 3 cards.
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-md text-sm leading-6 text-white/40">
-            Don't overthink it. Just pick the ones you're drawn to.
-          </p>
-        </motion.div>
-
-        {/* Progress */}
-
-        <div className="mt-8 flex items-center gap-3">
-          {[0, 1, 2].map((number) => (
-            <div
-              key={number}
-              className={`h-1.5 w-10 rounded-full transition-all duration-500 ${
-                number < selectedCards.length
-                  ? "bg-purple-200"
-                  : "bg-white/10"
-              }`}
-            />
-          ))}
-        </div>
-
-        <p className="mt-3 text-xs text-white/30">
-          {selectedCards.length} of 3 cards selected
+    <Shell>
+      <header className="mx-auto max-w-5xl px-6 pt-14 text-center">
+        <h1 className="font-[family-name:var(--font-display)] text-5xl leading-tight tracking-tight sm:text-6xl">
+          Pick three cards.
+        </h1>
+        <p className="mx-auto mt-4 max-w-md text-[#f4ead9]/60">
+          Don&apos;t overthink it. Go with the ones you&apos;re drawn to. Tap a
+          picked card to put it back.
         </p>
+      </header>
 
-        {/* Shuffled Tarot Cards */}
+      {/* Sticky tray: your three slots + the action, always in view */}
+      <div className="sticky top-0 z-20 mt-8 border-y border-[#f4ead9]/10 bg-[#120d1c]/85 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
+          <div className="flex gap-4">
+            {positions.map((p, slot) => {
+              const idx = picked[slot];
+              return (
+                <div key={p} className="text-center">
+                  <div className="relative h-[67px] w-10 rounded-lg border border-dashed border-[#f4ead9]/25 sm:h-[83px] sm:w-[50px]">
+                    {idx !== undefined && (
+                      <motion.div
+                        key={idx}
+                        className="absolute inset-0"
+                        initial={reduce ? false : { opacity: 0, scale: 0.8, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                      >
+                        <CardBack />
+                      </motion.div>
+                    )}
+                  </div>
+                  <span className="mt-1 block text-[11px] text-[#f4ead9]/55">{p}</span>
+                </div>
+              );
+            })}
+          </div>
 
-        <div className="mt-14 grid grid-cols-3 gap-x-3 gap-y-12 sm:grid-cols-4 sm:gap-x-6 sm:gap-y-14 md:grid-cols-5 lg:grid-cols-6">
+          <button
+            type="button"
+            onClick={reveal}
+            disabled={!full}
+            className="rounded-full bg-[#f4ead9] px-6 py-3 text-sm font-medium text-[#1a1329] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8a0b4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#120d1c] disabled:cursor-default disabled:bg-[#f4ead9]/10 disabled:text-[#f4ead9]/50"
+          >
+            {full ? "Reveal my reading" : `${picked.length} of 3 picked`}
+          </button>
+        </div>
+      </div>
+
+      {/* The spread: all 78 cards, face down */}
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(76px,1fr))]">
           {deck.map((card, index) => {
-            const selectedIndex = selectedCards.indexOf(index);
-            const isSelected = selectedIndex !== -1;
+            const slot = picked.indexOf(index);
+            const isPicked = slot !== -1;
+            const locked = full && !isPicked;
 
             return (
               <motion.button
-                key={card.name}
+                key={card.id}
                 type="button"
+                onClick={() => toggle(index)}
+                disabled={locked}
+                aria-pressed={isPicked}
                 aria-label={
-                  isSelected
-                    ? `${card.name}, selected as ${positions[selectedIndex]}`
-                    : `Select a tarot card, card ${index + 1}`
+                  isPicked
+                    ? `Card ${index + 1}, picked as ${positions[slot]}. Tap to put it back.`
+                    : `Card ${index + 1}`
                 }
-                aria-pressed={isSelected}
-                onClick={() => handleCardClick(index)}
-                disabled={selectedCards.length >= 3 && !isSelected}
-                whileHover={!isSelected ? { y: -8 } : {}}
-                whileTap={!isSelected ? { scale: 0.96 } : {}}
-                className="relative h-44 w-28 disabled:cursor-default disabled:opacity-60 sm:h-56 sm:w-36"
+                whileHover={!isPicked && !locked && !reduce ? { y: -6 } : undefined}
+                whileTap={!isPicked && !locked && !reduce ? { scale: 0.96 } : undefined}
+                className={`relative aspect-[3/5] w-full rounded-xl outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-[#e8a0b4] ${
+                  locked ? "cursor-default opacity-40" : ""
+                } ${isPicked ? "opacity-50 ring-2 ring-[#e8a0b4]/70" : ""}`}
               >
-                <motion.div
-                  className="relative h-full w-full"
-                  animate={{
-                    rotateY: isSelected ? 180 : 0,
-                  }}
-                  transition={{ duration: 0.6 }}
-                  style={{
-                    transformStyle: "preserve-3d",
-                  }}
-                >
-                  {/* CARD BACK */}
-
-                  <div
-                    className="absolute inset-0 rounded-2xl border border-purple-200/20 bg-[#241a31] p-2 shadow-xl"
-                    style={{
-                      backfaceVisibility: "hidden",
-                    }}
-                  >
-                    <div className="flex h-full w-full items-center justify-center rounded-xl border border-purple-200/15 bg-[#17111f]">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-purple-200/20 sm:h-24 sm:w-24">
-                        <span className="text-2xl text-purple-200/70 sm:text-4xl">
-                          ✦
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* CARD FRONT */}
-
-                  <div
-                    className="absolute inset-0 flex flex-col items-center justify-between rounded-2xl border border-purple-200/30 bg-[#e9dfd1] p-3 text-[#241a31] shadow-xl sm:p-4"
-                    style={{
-                      backfaceVisibility: "hidden",
-                      transform: "rotateY(180deg)",
-                    }}
-                  >
-                    <span className="text-xs opacity-50">
-                      {card.symbol}
-                    </span>
-
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#241a31]/30 sm:h-20 sm:w-20">
-                      <span className="font-serif text-2xl sm:text-4xl">
-                        {card.icon}
-                      </span>
-                    </div>
-
-                    <span className="font-serif text-center text-[11px] font-medium leading-tight sm:text-sm">
-                      {card.name}
-                    </span>
-                  </div>
-                </motion.div>
-
-                {/* Position */}
-
-                {isSelected && (
-                  <motion.span
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs text-purple-200/70"
-                  >
-                    {positions[selectedIndex]}
-                  </motion.span>
+                <CardBack />
+                {isPicked && (
+                  <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-[#120d1c]/50 text-[11px] font-medium text-[#f4ead9]">
+                    {positions[slot]}
+                  </span>
                 )}
               </motion.button>
             );
           })}
         </div>
 
-        {/* Completion */}
-
-        {selectedCards.length === 3 && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-16 text-center"
-          >
-            <p className="font-serif text-2xl">
-              okay... interesting. 👀
-            </p>
-
-            <p className="mt-2 text-sm text-white/40">
-              Let's see what the cards have to say.
-            </p>
-
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={revealReading}
-              className="mt-6 rounded-full bg-[#f8f1e7] px-8 py-4 text-sm font-medium text-[#17111f]"
-            >
-              reveal my reading ✨
-            </motion.button>
-          </motion.div>
-        )}
-
-        <p className="mt-16 text-xs text-white/20">
-          ✦ there are no wrong cards ✦
+        <p className="mt-14 text-center text-xs text-[#f4ead9]/40">
+          There are no wrong cards.
         </p>
       </div>
-    </main>
+    </Shell>
   );
 }

@@ -1,128 +1,109 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { tarotCards } from "@/lib/tarot";
+// app/reading/deck/page.tsx
 
-const cards = Array.from({ length: 7 });
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
+import { tarotCards } from "@/lib/tarot";
+import { Shell, CardBack } from "@/components/shell";
+
+const STACK = 7;
 
 export default function DeckPage() {
-  const [shuffling, setShuffling] = useState(false);
   const router = useRouter();
+  const reduce = useReducedMotion();
+  const [shuffling, setShuffling] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
 
-  const shuffleDeck = () => {
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  const shuffle = () => {
     if (shuffling) return;
-
     setShuffling(true);
 
-    // Randomize the complete 78-card tarot deck.
-    const shuffledDeck = [...tarotCards];
-
-    for (let i = shuffledDeck.length - 1; i > 0; i--) {
+    // Fisher–Yates over the full 78-card deck
+    const deck = [...tarotCards];
+    for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-
-      [shuffledDeck[i], shuffledDeck[j]] = [
-        shuffledDeck[j],
-        shuffledDeck[i],
-      ];
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    try {
+      sessionStorage.setItem("shuffledDeck", JSON.stringify(deck));
+    } catch {
+      // Storage blocked: the pick page falls back to the unshuffled order.
     }
 
-    sessionStorage.setItem(
-      "shuffledDeck",
-      JSON.stringify(shuffledDeck)
+    timer.current = window.setTimeout(
+      () => router.push("/reading/pick"),
+      reduce ? 400 : 2300
     );
-
-    // Automatically continue when the shuffle animation finishes.
-    setTimeout(() => {
-      router.push("/reading/pick");
-    }, 1400);
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#100c18] text-[#f8f1e7]">
-      <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-16">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <p className="mb-4 text-sm text-purple-200/50">
-            your cards are waiting...
-          </p>
-
-          <h1 className="font-serif text-5xl sm:text-6xl">
-            {shuffling ? "the universe is shuffling." : "let's shuffle."}
+    <Shell>
+      <div className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 py-16 text-center">
+        <div aria-live="polite">
+          <h1 className="font-[family-name:var(--font-display)] text-5xl leading-tight tracking-tight sm:text-6xl">
+            {shuffling ? "The universe is shuffling." : "Let's shuffle."}
           </h1>
-
-          <p className="mx-auto mt-5 max-w-md text-sm leading-6 text-white/40">
+          <p className="mx-auto mt-5 max-w-md text-[#f4ead9]/60">
             {shuffling
-              ? "trust the process. your cards are finding their place..."
+              ? "Trust the process. Your cards are finding their place."
               : "Take a breath. Think about your question. Then shuffle."}
           </p>
-        </motion.div>
+        </div>
 
-        {/* Animated deck */}
-        <div className="relative mt-14 flex h-[280px] w-full items-center justify-center">
-          {cards.map((_, index) => {
-            const middle = (cards.length - 1) / 2;
-            const offset = index - middle;
+        {/* Riffle: the stack splits into two piles, then drops back together, twice */}
+        <div className="relative my-14 flex h-[300px] w-full items-center justify-center sm:h-[340px]">
+          {Array.from({ length: STACK }).map((_, i) => {
+            const offset = i - (STACK - 1) / 2;
+            const side = i % 2 === 0 ? -1 : 1;
+            const rest = { x: offset * 5, y: Math.abs(offset) * 2, rotate: offset * 1.5 };
 
             return (
               <motion.div
-                key={index}
+                key={i}
+                className="absolute h-[210px] w-[126px] sm:h-[260px] sm:w-[156px]"
+                style={{ zIndex: i }}
                 animate={
-                  shuffling
+                  shuffling && !reduce
                     ? {
-                        x: offset * 90,
-                        y: index % 2 === 0 ? -70 : 70,
-                        rotate: offset * 12,
+                        x: [rest.x, side * 110, side * 110, rest.x],
+                        y: [rest.y, -i * 3, -i * 3, rest.y],
+                        rotate: [rest.rotate, side * 7, side * 7, rest.rotate],
                       }
-                    : {
-                        x: offset * 7,
-                        y: Math.abs(offset) * 2,
-                        rotate: offset * 2,
-                      }
+                    : rest
                 }
-                transition={{
-                  duration: 0.7,
-                  delay: shuffling ? index * 0.04 : 0,
-                  ease: "easeInOut",
-                }}
-                className="absolute"
-                style={{ zIndex: index }}
+                transition={
+                  shuffling && !reduce
+                    ? {
+                        duration: 0.9,
+                        times: [0, 0.3, 0.6, 1],
+                        ease: "easeInOut",
+                        delay: i * 0.05,
+                        repeat: 1,
+                      }
+                    : { duration: 0.4 }
+                }
               >
-                <div className="relative h-56 w-36 rounded-2xl border border-purple-200/20 bg-[#241a31] p-2 shadow-2xl">
-                  <div className="flex h-full w-full items-center justify-center rounded-xl border border-purple-200/20 bg-[#17111f]">
-                    <div className="flex h-24 w-24 items-center justify-center rounded-full border border-purple-200/20">
-                      <span className="text-3xl text-purple-200/70">
-                        ✦
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <CardBack />
               </motion.div>
             );
           })}
         </div>
 
-        {/* Shuffle action */}
-        <motion.button
+        <button
           type="button"
-          onClick={shuffleDeck}
+          onClick={shuffle}
           disabled={shuffling}
-          whileHover={!shuffling ? { scale: 1.04 } : undefined}
-          whileTap={!shuffling ? { scale: 0.97 } : undefined}
-          className="rounded-full bg-[#f8f1e7] px-8 py-4 text-sm font-medium text-[#17111f] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-[#f4ead9] px-8 py-4 text-sm font-medium text-[#1a1329] shadow-xl shadow-black/30 transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8a0b4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#120d1c] disabled:translate-y-0 disabled:cursor-default disabled:opacity-50"
         >
-          {shuffling ? "shuffling..." : "shuffle the deck ✦"}
-        </motion.button>
+          {shuffling ? "Shuffling…" : "Shuffle the deck"}
+        </button>
 
-        <p className="mt-12 text-xs text-white/20">
-          ✦ there are no wrong cards ✦
-        </p>
+        <p className="mt-12 text-xs text-[#f4ead9]/40">There are no wrong cards.</p>
       </div>
-    </main>
+    </Shell>
   );
 }

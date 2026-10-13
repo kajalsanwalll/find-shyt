@@ -1,12 +1,18 @@
+// lib/tarot.ts
+// Same deck as before, plus `id` and `image` (served from /public/cards/<id>.webp).
 
 export type TarotCard = {
+  id: string;
   name: string;
   meaning: string;
   symbol: string;
   icon: string;
+  image: string;
   arcana: "Major" | "Minor";
   suit?: "Cups" | "Wands" | "Swords" | "Pentacles";
 };
+
+const pad = (n: number) => String(n).padStart(2, "0");
 
 const majorArcana: TarotCard[] = [
   ["The Fool", "new beginnings and taking a leap", "0", "✦"],
@@ -31,7 +37,9 @@ const majorArcana: TarotCard[] = [
   ["The Sun", "joy, clarity and confidence", "XIX", "☀"],
   ["Judgement", "reflection, awakening and a fresh perspective", "XX", "♧"],
   ["The World", "completion, achievement and wholeness", "XXI", "◎"],
-].map(([name, meaning, symbol, icon]) => ({
+].map(([name, meaning, symbol, icon], i) => ({
+  id: `major-${pad(i)}`,
+  image: `/cards/major-${pad(i)}.webp`,
   name,
   meaning,
   symbol,
@@ -40,22 +48,10 @@ const majorArcana: TarotCard[] = [
 }));
 
 const suitData = {
-  Cups: {
-    icon: "♡",
-    theme: "emotions, relationships and intuition",
-  },
-  Wands: {
-    icon: "🔥",
-    theme: "passion, creativity and ambition",
-  },
-  Swords: {
-    icon: "⚔",
-    theme: "thoughts, communication and challenges",
-  },
-  Pentacles: {
-    icon: "✧",
-    theme: "money, work and practical matters",
-  },
+  Cups: { icon: "♡", theme: "emotions, relationships and intuition" },
+  Wands: { icon: "🔥", theme: "passion, creativity and ambition" },
+  Swords: { icon: "⚔", theme: "thoughts, communication and challenges" },
+  Pentacles: { icon: "✧", theme: "money, work and practical matters" },
 };
 
 const ranks = [
@@ -77,17 +73,19 @@ const ranks = [
 
 const minorArcana: TarotCard[] = Object.entries(suitData).flatMap(
   ([suit, details]) =>
-    ranks.map((rank) => ({
-      name: `${rank.name} of ${suit}`,
-      meaning: `${rank.meaning}; ${details.theme}`,
-      symbol: rank.symbol,
-      icon: details.icon,
-      arcana: "Minor" as const,
-      suit: suit as TarotCard["suit"],
-    }))
+    ranks.map((rank, r) => {
+      const id = `${suit.toLowerCase()}-${pad(r + 1)}`;
+      return {
+        id,
+        image: `/cards/${id}.webp`,
+        name: `${rank.name} of ${suit}`,
+        meaning: `${rank.meaning}; ${details.theme}`,
+        symbol: rank.symbol,
+        icon: details.icon,
+        arcana: "Minor" as const,
+        suit: suit as TarotCard["suit"],
+      };
+    })
 );
 
-export const tarotCards: TarotCard[] = [
-  ...majorArcana,
-  ...minorArcana,
-];
+export const tarotCards: TarotCard[] = [...majorArcana, ...minorArcana];
