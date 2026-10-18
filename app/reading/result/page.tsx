@@ -1,213 +1,73 @@
 "use client";
+
+// app/reading/result/page.tsx
+
 import Image from "next/image";
-import { tarotCards } from "@/lib/tarot";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
+import { Gloock, Instrument_Sans } from "next/font/google";
+import { tarotCards } from "@/lib/tarot";
+import { spreads, isSpreadId, type Spread } from "@/lib/spreads";
+// Move the three data blocks out of this file into lib/interpretations.ts and export them.
+import {
+  interpretations,
+  categoryInterpretations,
+  overallMessages,
+} from "@/lib/interpretations";
 
-const interpretations: Record<string, Record<string, string>> = {
-  "The Fool": {
-    Past: "You may have recently left something familiar behind, even if you weren't completely sure where you were going.",
-    Present: "You're being nudged toward something new. You don't need the entire plan figured out before taking the first step.",
-    Future: "Something unfamiliar may be opening up for you. The interesting part is that you probably won't know exactly where it leads yet.",
-  },
-  "The Magician": {
-    Past: "You've already had more ability and resources than you gave yourself credit for.",
-    Present: "You have more control over this situation than you think. Stop waiting for the perfect moment and work with what you already have.",
-    Future: "You're moving toward a phase where your own skills and decisions matter more than outside validation.",
-  },
-  "The High Priestess": {
-    Past: "There may have been things you sensed but didn't fully acknowledge at the time.",
-    Present: "Not everything needs an immediate answer. Your intuition may be noticing something your logical brain hasn't caught up with yet.",
-    Future: "Something may become clearer once you stop forcing an answer and give yourself some space.",
-  },
-  "The Empress": {
-    Past: "You've been growing more than you realize, even if the progress felt slow.",
-    Present: "This is a softer chapter. Give yourself permission to enjoy things, create things, and actually receive good energy instead of constantly chasing the next goal.",
-    Future: "Something you've been nurturing has room to grow. Don't underestimate what consistency and patience can create.",
-  },
-  "The Emperor": {
-    Past: "A situation may have taught you that structure and boundaries matter more than you thought.",
-    Present: "You may need to take control instead of waiting for someone else to make the decision for you.",
-    Future: "Things could become more stable once you create clearer boundaries and decide what you actually want.",
-  },
-  "The Lovers": {
-    Past: "A relationship or important choice may still be influencing how you're approaching this situation.",
-    Present: "This is less about choosing what looks perfect and more about choosing what actually feels aligned with you.",
-    Future: "A meaningful connection or important choice may become more significant than it currently seems.",
-  },
-  "The Chariot": {
-    Past: "You've already pushed through something that required more determination than people around you probably realized.",
-    Present: "You're in a take-the-wheel moment. Pick a direction and stop letting every little distraction change your course.",
-    Future: "Momentum is building. Once you commit to a direction, things may start moving much faster.",
-  },
-  Strength: {
-    Past: "You've learned that being strong doesn't always mean being loud or fighting harder.",
-    Present: "Patience is actually your power right now. You don't need to force this situation.",
-    Future: "You'll probably handle what's coming better than you currently think you will.",
-  },
-  "The Hermit": {
-    Past: "You've spent time figuring things out on your own, and that solitude taught you something important.",
-    Present: "You might need less outside advice and a little more time listening to yourself.",
-    Future: "A period of reflection may help you understand what you actually want before your next big move.",
-  },
-  "The Star": {
-    Past: "Something may have disappointed you, but it didn't completely take away your hope.",
-    Present: "There is still something worth believing in here. Give yourself permission to be optimistic again.",
-    Future: "This points toward a lighter chapter where things may start feeling more hopeful and clear.",
-  },
-  "The Moon": {
-    Past: "There may have been confusion, mixed signals, or emotions that made a situation harder to understand.",
-    Present: "Not everything is clear right now, and that's okay. Don't make a permanent decision based on temporary uncertainty.",
-    Future: "Something hidden or unclear may eventually come to light. Give it time before assuming the worst.",
-  },
-  "The Sun": {
-    Past: "You've already experienced a moment when things felt simpler, happier, or more certain.",
-    Present: "Honestly? This is good energy. Let yourself enjoy what's going right instead of immediately looking for what could go wrong.",
-    Future: "Clarity and confidence are heading your way. Something may turn out better than you currently expect.",
-  },
+const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-display" });
+const body = Instrument_Sans({ subsets: ["latin"], variable: "--font-body" });
+
+/*
+  Palette (shared with the other pages): ink #17152b, bone #f2e8cf, cobalt #2b4bb0,
+  ochre #eaae2c, vermilion #d2442e, sage #7fae93
+*/
+
+const pageClass = `${display.variable} ${body.variable} min-h-screen bg-[#2b4bb0] font-[family-name:var(--font-body)] text-[#f2e8cf]`;
+const dots = {
+  backgroundImage: "radial-gradient(rgba(242,232,207,0.16) 1.5px, transparent 1.5px)",
+  backgroundSize: "34px 34px",
 };
 
-const categoryInterpretations: Record<string, Record<string, string>> = {
-  love: {
-    "The Fool": "There's fresh energy around your love life. If you've been waiting for a sign to stop overthinking and let yourself experience something new, this might be it.",
-    "The Magician": "You have more influence over your love life than you think. Communication, confidence, and actually expressing what you want could change the situation.",
-    "The High Priestess": "Something about this connection may not be fully spoken out loud. Pay attention to your intuition, especially if someone's actions feel different from their words.",
-    "The Empress": "This is soft, attractive energy. You deserve a connection where affection doesn't feel like something you have to earn.",
-    "The Emperor": "Boundaries matter here. Don't confuse someone being emotionally unavailable with them being mysterious.",
-    "The Lovers": "Okay... this one is VERY on theme. 👀 There's a meaningful choice or connection here, but alignment matters more than simply wanting someone.",
-    "The Chariot": "Someone needs to make a move. Waiting forever for the other person to figure it out probably isn't helping.",
-    Strength: "Don't chase. Don't force. Let someone's consistency tell you more than their occasional bursts of attention.",
-    "The Hermit": "You may need some distance from the situation to understand what you actually want from this person.",
-    "The Star": "There's hopeful energy here. Even if something hasn't worked out yet, your love life isn't as doomed as your 2 a.m. thoughts suggest.",
-    "The Moon": "Mixed signals are probably the headline here. Don't turn uncertainty into a love story just because you want the answer to be yes.",
-    "The Sun": "This is warm, honest, happy energy. A connection may become clearer once you stop trying to decode every tiny interaction.",
-  },
+type Time = "Past" | "Present" | "Future";
 
-  career: {
-    "The Fool": "You may be entering a new phase academically or professionally. You don't need to know the entire career path before taking the opportunity in front of you.",
-    "The Magician": "You already have useful skills. The next step may be less about learning everything and more about actually showing people what you can do.",
-    "The High Priestess": "You may already know which direction feels right. Don't let everyone else's career advice drown out your own instincts.",
-    "The Empress": "Your skills are developing. Give yourself time to build something instead of constantly comparing your timeline with everyone else's.",
-    "The Emperor": "Structure is your friend right now. A clearer plan, stronger routine, or better boundaries could make a bigger difference than another random productivity hack.",
-    "The Lovers": "A career decision may come down to choosing what actually aligns with you rather than what simply looks impressive on paper.",
-    "The Chariot": "You're being pushed toward action. Pick a target, commit, and start moving instead of endlessly preparing.",
-    Strength: "Progress may be slower than you'd like, but consistency is going to matter more than one spectacular burst of effort.",
-    "The Hermit": "You may need some quiet time to figure out what kind of work you actually enjoy, rather than following the path everyone expects.",
-    "The Star": "Keep going. Something you've been working toward has genuine potential, even if the result isn't visible yet.",
-    "The Moon": "Career uncertainty is showing up strongly. Before making a dramatic decision, separate 'I hate this' from 'I don't know where this is going.'",
-    "The Sun": "This is a great card for confidence and visibility. Your work may finally start getting the recognition you've been hoping for.",
-  },
-
-  friendship: {
-    "The Fool": "A new friendship or a new version of an existing friendship may be entering your life.",
-    "The Magician": "You have more influence over the friendship dynamic than you think. Sometimes someone just needs you to initiate.",
-    "The High Priestess": "Trust your gut about people. If something feels off, you don't need a ten-page investigation to take a step back.",
-    "The Empress": "This is nurturing friendship energy. Look for people who make you feel safe being completely yourself.",
-    "The Emperor": "Healthy friendships need boundaries too. You don't have to constantly be available to prove that you care.",
-    "The Lovers": "This connection may be more meaningful than you realize. Choose friendships where the effort goes both ways.",
-    "The Chariot": "Someone may need to make the first move. If you miss a friend, maybe just text them.",
-    Strength: "Patience matters here. Not every friendship needs to be fixed immediately.",
-    "The Hermit": "You may be entering a more independent phase socially. That's not necessarily loneliness.",
-    "The Star": "There's healing energy around your friendships. A difficult chapter doesn't mean every friendship is doomed.",
-    "The Moon": "Something about a friendship may feel unclear. Don't assume the worst before you actually know what's going on.",
-    "The Sun": "This is genuinely lovely friendship energy. Spend time with the people who make ordinary days feel better.",
-  },
-
-  life: {
-    "The Fool": "You're standing near the beginning of something. You don't need certainty before you start.",
-    "The Magician": "You have more agency than you think. Start using what you already have instead of waiting until you're somehow 'ready.'",
-    "The High Priestess": "Slow down. Your inner voice may be quieter than the outside noise, but that doesn't mean it's wrong.",
-    "The Empress": "You're in a growth era. Let yourself become someone new without feeling guilty for outgrowing an older version of yourself.",
-    "The Emperor": "A little structure could bring a lot of peace. Decide what actually matters and build around that.",
-    "The Lovers": "A major theme right now is alignment: are your choices actually matching the person you're becoming?",
-    "The Chariot": "You've got momentum. Pick a direction and stop letting every tiny setback convince you that you've chosen wrong.",
-    Strength: "You don't have to have everything together. Quiet resilience counts too.",
-    "The Hermit": "You may need a little solitude to hear your own thoughts again.",
-    "The Star": "This is a reminder that things can get better without becoming perfect.",
-    "The Moon": "You're probably in an uncertain chapter. That's uncomfortable, but uncertainty isn't automatically a bad sign.",
-    "The Sun": "Something is becoming clearer. Let yourself enjoy this chapter instead of immediately worrying about the next one.",
-  },
-
-  specific: {
-    "The Fool": "Whatever you're asking about, there seems to be an invitation to stop treating uncertainty as a reason not to begin.",
-    "The Magician": "You may already have one of the answers you're looking for. The question is whether you're actually willing to act on it.",
-    "The High Priestess": "There's something here that deserves a little more listening and a little less forcing.",
-    "The Empress": "Whatever this situation is, growth seems more likely when you approach it with patience instead of pressure.",
-    "The Emperor": "This situation may benefit from clearer boundaries, expectations, or decisions.",
-    "The Lovers": "The heart of this situation may be a choice: what actually aligns with what you want?",
-    "The Chariot": "Something needs movement. Staying stuck and thinking about it for another three weeks probably isn't the answer.",
-    Strength: "You may be stronger in this situation than you currently feel.",
-    "The Hermit": "You probably need your own answer here rather than another person's opinion.",
-    "The Star": "Don't dismiss hope just because the situation hasn't worked out yet.",
-    "The Moon": "There's not enough information yet to see the whole picture. Give yourself permission not to know.",
-    "The Sun": "Clarity is coming into this situation. Look for what feels simple and honest rather than unnecessarily complicated.",
-  },
-
-  random: {
-    "The Fool": "Plot twist: you're probably being asked to try something you've been putting off.",
-    "The Magician": "You have more power over your current situation than you've been giving yourself credit for.",
-    "The High Priestess": "Your intuition has entered the chat. Maybe listen to it.",
-    "The Empress": "More softness. More creativity. Less treating your life like a productivity competition.",
-    "The Emperor": "Get your life together... but like, gently.",
-    "The Lovers": "A choice is coming. Choose the thing that actually feels like you.",
-    "The Chariot": "Pick a direction and MOVE. You can course-correct later.",
-    Strength: "You don't need to prove anything today. Quiet strength is still strength.",
-    "The Hermit": "Maybe disappear from the group chat for a minute and figure out what you actually think.",
-    "The Star": "Things aren't as hopeless as your brain is making them seem.",
-    "The Moon": "You don't have all the information yet. And that's okay.",
-    "The Sun": "Honestly? Something good is probably worth letting yourself enjoy.",
-  },
+// Which of the Past / Present / Future interpretations each position borrows from
+const timeFor: Record<string, Time> = {
+  Past: "Past",
+  Present: "Present",
+  Future: "Future",
+  "Your card": "Present",
+  Situation: "Present",
+  Challenge: "Present",
+  Outcome: "Future",
 };
 
-const overallMessages: Record<string, string[]> = {
-  love: [
-    "The overall energy feels like you're being asked to stop chasing certainty and start paying attention to consistency. If someone wants to be in your life, you shouldn't have to solve a mystery to figure it out.",
-    "There's a strong theme of emotional clarity here. You may be entering a phase where you're less interested in potential and more interested in what someone actually shows you.",
-    "This reading feels like a reminder that love should add something to your life, not make you question your worth every other Tuesday.",
-  ],
-  career: [
-    "The overall energy feels like movement. You don't need to have your entire career mapped out right now — you just need to choose the next direction worth exploring.",
-    "There's a strong theme of trusting your own abilities. You may be closer to being ready than you think.",
-    "This reading points toward growth through action. Stop waiting for the perfect version of yourself to show up before you start.",
-  ],
-  friendship: [
-    "The overall energy is about reciprocity. The people meant to stay in your life won't require you to constantly prove that you deserve a place in theirs.",
-    "There's a theme of becoming more intentional about who gets your energy. Not every friendship needs to last forever to have mattered.",
-    "This reading feels like a reminder to value the people who make you feel like yourself instead of performing a version of yourself for them.",
-  ],
-  life: [
-    "The overall energy feels like transition. You may not have everything figured out, but you're clearly not the same person you were a year ago.",
-    "There's a strong theme of trusting your own timing. You don't need to have someone else's life by a certain age.",
-    "This reading feels like permission to stop treating uncertainty as failure. Sometimes you're simply in the middle of becoming.",
-  ],
-  specific: [
-    "The overall energy suggests that the answer may not be as black-and-white as you hoped. Give yourself permission to sit with the uncertainty before making a decision.",
-    "There's a strong theme of trusting yourself. You can listen to other people's opinions without handing them the steering wheel.",
-    "This situation may be teaching you something about what you actually want — not just what you thought you wanted.",
-  ],
-  random: [
-    "The cards basically said: slow down, listen to yourself, and stop pretending you don't already know something important.",
-    "Your cards are giving main-character-in-a-transition-arc energy. Something is shifting, even if you can't fully see where it's going yet.",
-    "The overall vibe? Less overthinking. More living. You can figure some things out while you're actually moving.",
-  ],
+const intros: Record<string, string> = {
+  Past: "something from your past may still be shaping this",
+  Present: "this feels connected to where you are right now",
+  Future: "this points toward the energy you're moving into",
+  "Your card": "this is the energy around your question right now",
+  Situation: "this is the heart of what's going on",
+  Challenge: "this is what may be getting in the way",
+  Outcome: "this is where things may be heading",
 };
 
-const positions = [
-  {
-    name: "Past",
-    intro: "something from your past may still be shaping this",
-  },
-  {
-    name: "Present",
-    intro: "this feels connected to where you are right now",
-  },
-  {
-    name: "Future",
-    intro: "this points toward the energy you're moving into",
-  },
+const pills = [
+  { bg: "#d2442e", fg: "#f2e8cf" },
+  { bg: "#eaae2c", fg: "#17152b" },
+  { bg: "#2b4bb0", fg: "#f2e8cf" },
+  { bg: "#7fae93", fg: "#17152b" },
+  { bg: "#17152b", fg: "#f2e8cf" },
 ];
 
+const buttonClass =
+  "rounded-full border-[3px] border-[#17152b] bg-[#eaae2c] px-8 py-4 text-base font-semibold text-[#17152b] shadow-[5px_5px_0_#17152b] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#17152b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#f2e8cf] active:translate-x-1 active:translate-y-1 active:shadow-none";
+
 export default function ResultPage() {
+  const router = useRouter();
+  const reduce = useReducedMotion();
   const [reading, setReading] = useState<any>(null);
   const [deck, setDeck] = useState(tarotCards);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -219,11 +79,7 @@ export default function ResultPage() {
 
       if (savedDeck) {
         const parsedDeck = JSON.parse(savedDeck);
-
-        if (
-          Array.isArray(parsedDeck) &&
-          parsedDeck.length === tarotCards.length
-        ) {
+        if (Array.isArray(parsedDeck) && parsedDeck.length === tarotCards.length) {
           setDeck(parsedDeck);
         }
       }
@@ -240,23 +96,21 @@ export default function ResultPage() {
 
   if (!isLoaded) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#100c18] text-[#f8f1e7]">
-        <p className="text-white/50">gathering your cards... ✦</p>
+      <main className={`${pageClass} flex items-center justify-center`} style={dots}>
+        <p className="text-lg text-[#f2e8cf]/85">gathering your cards...</p>
       </main>
     );
   }
 
   if (!reading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#100c18] px-6 text-[#f8f1e7]">
-        <p className="text-white/50">your cards are hiding from us... 👀</p>
-        <button
-          type="button"
-          onClick={() => (window.location.href = "/reading")}
-          className="mt-6 rounded-full border border-white/15 px-6 py-3 text-sm hover:bg-white/5"
-        >
-          start a new reading →
-        </button>
+      <main className={`${pageClass} flex flex-col items-center justify-center px-6`} style={dots}>
+        <p className="font-[family-name:var(--font-display)] text-3xl">
+          your cards are hiding from us.
+        </p>
+        <Link href="/reading" className={`${buttonClass} mt-8`}>
+          Start a new reading
+        </Link>
       </main>
     );
   }
@@ -265,9 +119,17 @@ export default function ResultPage() {
     ? reading.selectedCards
     : [];
 
+  // Spread saved by the pick page; older sessions fall back to the number of cards picked.
+  const spread: Spread = isSpreadId(reading.spread)
+    ? spreads[reading.spread]
+    : selectedCards.length === 1
+    ? spreads.one
+    : selectedCards.length === 5
+    ? spreads.cross
+    : spreads.three;
+
   const category =
-    typeof reading.category === "string" &&
-    overallMessages[reading.category]
+    typeof reading.category === "string" && overallMessages[reading.category]
       ? reading.category
       : "random";
 
@@ -281,156 +143,135 @@ export default function ResultPage() {
       ) % messages.length
     ];
 
+  const fade = (delay: number) => ({
+    initial: reduce ? false : { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: reduce ? 0 : delay, duration: reduce ? 0 : 0.4 },
+  });
+
   return (
-    <main className="min-h-screen bg-[#100c18] text-[#f8f1e7]">
+    <main className={pageClass} style={dots}>
       <div className="mx-auto max-w-4xl px-6 py-16">
         {/* HEADER */}
-
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <p className="mb-4 text-sm text-purple-200/50">
-            okay... let's see 👀
-          </p>
-
-          <h1 className="font-serif text-5xl sm:text-6xl">
+        <motion.header {...fade(0)} className="text-center">
+          <p className="mb-4 text-lg text-[#f2e8cf]/85">okay... let&apos;s see</p>
+          <h1 className="font-[family-name:var(--font-display)] text-6xl sm:text-8xl">
             your reading.
           </h1>
-
           {reading.question && (
-            <p className="mx-auto mt-6 max-w-xl text-sm leading-6 text-white/50">
-              "{reading.question}"
+            <p className="mx-auto mt-8 max-w-xl rounded-2xl border-[3px] border-[#17152b] bg-[#f2e8cf] px-6 py-4 text-base leading-7 text-[#17152b] shadow-[5px_5px_0_#17152b]">
+              &ldquo;{reading.question}&rdquo;
             </p>
           )}
-        </motion.div>
+        </motion.header>
 
         {/* CARDS */}
-
-        <div className="mt-16 space-y-8">
+        <div className="mt-16 space-y-10">
           {selectedCards.map((cardIndex, index) => {
             // IMPORTANT: Look up the card in the SAME shuffled deck.
             const card = deck[cardIndex];
-            const position = positions[index];
+            const positionName = spread.positions[index];
 
-            if (!card || !position) return null;
+            if (!card || !positionName) return null;
+
+            const time = timeFor[positionName] ?? "Present";
+            const pill = pills[index % pills.length];
 
             const interpretation =
               categoryInterpretations[category]?.[card.name] ||
-              interpretations[card.name]?.[position.name] ||
+              interpretations[card.name]?.[time] ||
               `This card brings up themes of ${card.meaning}. Think about where these themes might be showing up in your life right now.`;
 
             return (
-              <motion.div
+              <motion.article
                 key={`${card.name}-${index}`}
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.15 }}
-                className="rounded-3xl border border-purple-200/10 bg-white/[0.03] p-6 sm:p-8"
+                {...fade(0.15 + index * 0.15)}
+                className="rounded-3xl border-[3px] border-[#17152b] bg-[#f2e8cf] p-6 text-[#17152b] shadow-[8px_8px_0_#17152b] sm:p-8"
               >
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                  {/* CARD */}
-
+                <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start">
                   {/* ACTUAL TAROT CARD IMAGE */}
-<div className="relative aspect-[2/3] w-36 shrink-0 overflow-hidden rounded-2xl border border-purple-200/20 bg-[#e9dfd1] shadow-xl shadow-black/20">
-  <Image
-    src={card.image}
-    alt={card.name}
-    fill
-    sizes="144px"
-    className="object-cover"
-    priority={index === 0}
-  />
-</div>
+                  <div className="relative aspect-[2/3] w-40 shrink-0 overflow-hidden rounded-xl border-[3px] border-[#17152b] bg-[#e9dfd1] shadow-[5px_5px_0_#17152b] sm:w-44">
+                    <Image
+                      src={card.image}
+                      alt={card.name}
+                      fill
+                      sizes="176px"
+                      className="object-cover"
+                      priority={index === 0}
+                    />
+                  </div>
 
                   {/* READING */}
+                  <div className="text-center sm:text-left">
+                    <span
+                      className="inline-block rounded-full border-[3px] border-[#17152b] px-4 py-1 text-sm font-semibold"
+                      style={{ background: pill.bg, color: pill.fg }}
+                    >
+                      {positionName}
+                    </span>
 
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-purple-200/50">
-                      {position.name}
-                    </p>
-
-                    <h2 className="mt-2 font-serif text-3xl">
+                    <h2 className="mt-4 font-[family-name:var(--font-display)] text-4xl leading-tight">
                       {card.name}
                     </h2>
 
-                    <p className="mt-3 text-sm leading-6 text-white/50">
-                      {position.intro}.
-                    </p>
+                    <p className="mt-2 text-base text-[#17152b]/70">{intros[positionName]}.</p>
 
-                    <p className="mt-4 text-sm leading-7 text-purple-100/80">
-                      {interpretation}
-                    </p>
+                    <p className="mt-5 text-lg leading-8">{interpretation}</p>
                   </div>
                 </div>
-              </motion.div>
+              </motion.article>
             );
           })}
         </div>
 
         {/* OVERALL ENERGY */}
-
-        <motion.div
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-16 rounded-3xl border border-purple-200/15 bg-purple-200/[0.04] p-8 text-center sm:p-10"
+        <motion.section
+          {...fade(0.3 + selectedCards.length * 0.15)}
+          className="mt-16 rounded-3xl border-[3px] border-[#17152b] bg-[#eaae2c] p-8 text-center text-[#17152b] shadow-[8px_8px_0_#17152b] sm:p-12"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-purple-200/40">
-            overall energy
-          </p>
+          <p className="text-base font-medium">overall energy</p>
 
-          <h2 className="mt-4 font-serif text-3xl sm:text-4xl">
-            okay... here's the thing.
+          <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl sm:text-5xl">
+            okay... here&apos;s the thing.
           </h2>
 
-          <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-purple-100/70">
-            {overallMessage}
-          </p>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8">{overallMessage}</p>
 
-          <div className="mx-auto mt-8 h-px w-16 bg-purple-200/20" />
+          <div className="mx-auto mt-8 h-[3px] w-16 bg-[#17152b]" />
 
-          <p className="mt-6 text-xs text-white/30">
-            past · present · future
+          <p className="mt-6 text-sm font-medium">
+            {spread.positions.join(" \u00b7 ").toLowerCase()}
           </p>
-        </motion.div>
+        </motion.section>
 
         {/* ENDING */}
-<motion.div
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.6 }}
-  className="mt-16 text-center"
->
-  <p className="font-serif text-2xl">
-    take what resonates. ✨
-  </p>
+        <motion.div {...fade(0.5 + selectedCards.length * 0.15)} className="mt-16 text-center">
+          <p className="font-[family-name:var(--font-display)] text-3xl">take what resonates.</p>
 
-  <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-white/40">
-    The cards aren't here to decide your life for you.
-    They're just giving you something to think about.
-  </p>
+          <p className="mx-auto mt-3 max-w-md text-lg leading-7 text-[#f2e8cf]/85">
+            The cards aren&apos;t here to decide your life for you. They&apos;re just giving you
+            something to think about.
+          </p>
 
-  <p className="mt-8 text-xs text-white/25">
-    for reflection, fun & a little ✨delusion✨
-  </p>
+          <p className="mt-8 text-sm text-[#f2e8cf]/70">for reflection, fun & a little delusion</p>
 
-  <motion.button
-    type="button"
-    whileHover={{ scale: 1.04 }}
-    whileTap={{ scale: 0.97 }}
-    onClick={() => {
-      sessionStorage.removeItem("reading");
-      sessionStorage.removeItem("shuffledDeck");
-      window.location.href = "/reading";
-    }}
-    className="mt-8 rounded-full bg-[#f8f1e7] px-8 py-4 text-sm font-medium text-[#17111f] transition"
-  >
-    start a new reading ↗
-  </motion.button>
-</motion.div>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                sessionStorage.removeItem("reading");
+                sessionStorage.removeItem("shuffledDeck");
+              } catch {
+                // storage blocked; nothing to clear
+              }
+              router.push("/reading");
+            }}
+            className={`${buttonClass} mt-8`}
+          >
+            Start a new reading
+          </button>
+        </motion.div>
       </div>
     </main>
-  );  
+  );
 }

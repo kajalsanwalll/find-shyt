@@ -118,16 +118,19 @@ const deck: Arcana[] = [
 
 const spreads = [
   {
+    id: "one",
     name: "One card",
     when: "For a quick nudge or a daily check-in.",
     cells: [[1, 1]],
   },
   {
+    id: "three",
     name: "Three cards",
     when: "Past, present, future. Good for \u201cwhat\u2019s going on here?\u201d",
     cells: [[0, 1], [1, 1], [2, 1]],
   },
   {
+    id: "cross",
     name: "The cross",
     when: "Five cards for when you feel stuck between options.",
     cells: [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]],
@@ -322,9 +325,10 @@ export default function Home() {
           </h2>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {spreads.map((s, i) => (
-              <article
-                key={s.name}
-                className="flex items-center gap-6 rounded-2xl border-[3px] border-[#17152b] p-6 shadow-[6px_6px_0_#17152b]"
+              <Link
+                key={s.id}
+                href={`/reading?spread=${s.id}`}
+                className="flex items-center gap-6 rounded-2xl border-[3px] border-[#17152b] p-6 shadow-[6px_6px_0_#17152b] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_#17152b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2b4bb0]"
                 style={{ background: ["#eaae2c", "#7fae93", "#f2e8cf"][i] }}
               >
                 <SpreadDiagram cells={s.cells} />
@@ -332,7 +336,7 @@ export default function Home() {
                   <h3 className="font-[family-name:var(--font-display)] text-2xl">{s.name}</h3>
                   <p className="mt-2 text-sm leading-6">{s.when}</p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

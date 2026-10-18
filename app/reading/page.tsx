@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Gloock, Instrument_Sans } from "next/font/google";
+import { DEFAULT_SPREAD, isSpreadId } from "@/lib/spreads";
 
 const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-display" });
 const body = Instrument_Sans({ subsets: ["latin"], variable: "--font-body" });
@@ -95,11 +96,15 @@ export default function ReadingPage() {
 
   function start() {
     if (!selected) return;
+    // The spread is chosen on the home page (/reading?spread=one|three|cross)
+    const fromUrl = new URLSearchParams(window.location.search).get("spread");
+    const spread = isSpreadId(fromUrl) ? fromUrl : DEFAULT_SPREAD;
     try {
       sessionStorage.setItem(
         "reading",
         JSON.stringify({
           category: selected,
+          spread,
           question: isRandom ? "" : question.trim(),
         })
       );
