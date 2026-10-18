@@ -1,33 +1,88 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Fraunces, DM_Sans } from "next/font/google";
+import { Gloock, Instrument_Sans } from "next/font/google";
 
-const display = Fraunces({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-});
-const body = DM_Sans({ subsets: ["latin"], variable: "--font-body" });
+const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-display" });
+const body = Instrument_Sans({ subsets: ["latin"], variable: "--font-body" });
 
-const categories = [
-  { id: "love", emoji: "💗", label: "Love", sub: "relationships, crushes, situationships" },
-  { id: "career", emoji: "💼", label: "Career", sub: "work, studies, what's next" },
-  { id: "friendship", emoji: "🫂", label: "Friendship", sub: "friends, people, connections" },
-  { id: "life", emoji: "🌱", label: "Life", sub: "growth, choices, your current era" },
-  { id: "specific", emoji: "👀", label: "Something specific", sub: "you know exactly what we're asking" },
-  { id: "random", emoji: "🤷", label: "Just pull for me", sub: "no question, just vibes" },
+/*
+  Palette (shared with the home page): ink #17152b, bone #f2e8cf, cobalt #2b4bb0,
+  ochre #eaae2c, vermilion #d2442e, sage #7fae93
+*/
+
+const INK = "#17152b";
+const sk = { stroke: INK, strokeWidth: 3, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
+
+const categories: { id: string; label: string; sub: string; field: string; art: ReactNode }[] = [
+  {
+    id: "love",
+    label: "Love",
+    sub: "relationships, crushes, situationships",
+    field: "#d2442e",
+    art: <path d="M32 54C10 38 8 22 20 15c6-3 12 0 12 7 0-7 6-10 12-7 12 7 10 23-12 39z" fill="#f2e8cf" {...sk} />,
+  },
+  {
+    id: "career",
+    label: "Career",
+    sub: "work, studies, what's next",
+    field: "#eaae2c",
+    art: (
+      <>
+        <circle cx="32" cy="32" r="22" fill="#f2e8cf" {...sk} />
+        <path d="M32 14l6 18-6 18-6-18z M14 32l18-6 18 6-18 6z" fill="#2b4bb0" {...sk} />
+      </>
+    ),
+  },
+  {
+    id: "friendship",
+    label: "Friendship",
+    sub: "friends, people, connections",
+    field: "#7fae93",
+    art: (
+      <>
+        <circle cx="23" cy="32" r="16" fill="#eaae2c" {...sk} />
+        <circle cx="41" cy="32" r="16" fill="#d2442e" fillOpacity="0.9" {...sk} />
+      </>
+    ),
+  },
+  {
+    id: "life",
+    label: "Life",
+    sub: "growth, choices, your current era",
+    field: "#eaae2c",
+    art: (
+      <>
+        <path d="M32 58V30" {...sk} fill="none" />
+        <path d="M32 36C16 36 12 24 14 14c12 0 18 8 18 22z" fill="#7fae93" {...sk} />
+        <path d="M32 30c0-12 6-18 18-18 2 10-2 22-18 18z" fill="#f2e8cf" {...sk} />
+      </>
+    ),
+  },
+  {
+    id: "specific",
+    label: "Something specific",
+    sub: "you know exactly what we're asking",
+    field: "#2b4bb0",
+    art: (
+      <>
+        <path d="M4 32c8-14 18-20 28-20s20 6 28 20c-8 14-18 20-28 20S12 46 4 32z" fill="#f2e8cf" {...sk} />
+        <circle cx="32" cy="32" r="10" fill="#d2442e" {...sk} />
+        <circle cx="32" cy="32" r="3" fill={INK} />
+      </>
+    ),
+  },
+  {
+    id: "random",
+    label: "Just pull for me",
+    sub: "no question, just vibes",
+    field: "#f2e8cf",
+    art: <path d="M32 6l7 20 20 6-20 6-7 20-7-20-20-6 20-6z" fill="#eaae2c" {...sk} />,
+  },
 ];
-
-const stars = Array.from({ length: 28 }, (_, i) => ({
-  left: (i * 37.7) % 100,
-  top: (i * 53.3 + (i % 5) * 7) % 100,
-  size: i % 7 === 0 ? 3 : 2,
-  opacity: 0.18 + (i % 4) * 0.1,
-}));
 
 export default function ReadingPage() {
   const router = useRouter();
@@ -56,40 +111,26 @@ export default function ReadingPage() {
 
   return (
     <main
-      className={`${display.variable} ${body.variable} relative min-h-screen overflow-hidden bg-[#120d1c] font-[family-name:var(--font-body)] text-[#f4ead9]`}
+      className={`${display.variable} ${body.variable} min-h-screen bg-[#2b4bb0] font-[family-name:var(--font-body)] text-[#f2e8cf]`}
+      style={{
+        backgroundImage: "radial-gradient(rgba(242,232,207,0.16) 1.5px, transparent 1.5px)",
+        backgroundSize: "34px 34px",
+      }}
     >
-      {/* star field + one glow */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute right-[-120px] top-[-120px] h-[420px] w-[420px] rounded-full bg-[#b9a6e8]/10 blur-[110px]" />
-        {stars.map((s, i) => (
-          <span
-            key={i}
-            className="absolute rounded-full bg-[#f4ead9]"
-            style={{
-              left: `${s.left}%`,
-              top: `${s.top}%`,
-              width: s.size,
-              height: s.size,
-              opacity: s.opacity,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-10">
+      <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-10">
         <Link
           href="/"
-          className="w-fit rounded text-sm text-[#f4ead9]/50 transition hover:text-[#f4ead9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8a0b4]"
+          className="w-fit rounded-full border-2 border-[#17152b] bg-[#f2e8cf] px-4 py-1.5 text-sm font-medium text-[#17152b] shadow-[3px_3px_0_#17152b] transition hover:-translate-x-0.5 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#eaae2c]"
         >
           Back
         </Link>
 
         <div className="my-auto py-10">
           <header>
-            <h1 className="font-[family-name:var(--font-display)] text-5xl leading-[1.02] tracking-tight sm:text-6xl">
+            <h1 className="font-[family-name:var(--font-display)] text-5xl leading-[1.02] sm:text-7xl">
               What are we dealing with?
             </h1>
-            <p className="mt-4 max-w-md text-[#f4ead9]/60">
+            <p className="mt-5 max-w-md text-lg text-[#f2e8cf]/85">
               Pick whatever feels right. There are no wrong answers.
             </p>
           </header>
@@ -97,15 +138,12 @@ export default function ReadingPage() {
           {/* Topic picker: real radios, so arrow keys and screen readers work */}
           <fieldset className="mt-10">
             <legend className="sr-only">Choose a topic</legend>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {categories.map((c) => {
                 const isSelected = selected === c.id;
                 const isLast = c.id === "random";
                 return (
-                  <label
-                    key={c.id}
-                    className={`cursor-pointer ${isLast ? "sm:col-span-2" : ""}`}
-                  >
+                  <label key={c.id} className={`cursor-pointer ${isLast ? "sm:col-span-2" : ""}`}>
                     <input
                       type="radio"
                       name="category"
@@ -115,31 +153,40 @@ export default function ReadingPage() {
                       className="peer sr-only"
                     />
                     <div
-                      className={`flex items-center gap-4 rounded-2xl border p-4 transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-[#e8a0b4] ${
+                      className={`flex items-center gap-4 rounded-2xl border-[3px] border-[#17152b] bg-[#f2e8cf] p-3 text-[#17152b] transition peer-focus-visible:ring-4 peer-focus-visible:ring-[#eaae2c] ${
                         isLast ? "border-dashed" : ""
                       } ${
                         isSelected
-                          ? "border-[#e8a0b4]/60 bg-[#e8a0b4]/[0.09]"
-                          : "border-[#f4ead9]/15 bg-[#f4ead9]/[0.03] hover:border-[#f4ead9]/30 hover:bg-[#f4ead9]/[0.06]"
+                          ? "-translate-x-1 -translate-y-1 shadow-[8px_8px_0_#17152b]"
+                          : "shadow-[4px_4px_0_#17152b] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#17152b]"
                       }`}
                     >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f4ead9]/[0.06] text-2xl">
-                        {c.emoji}
+                      <span
+                        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-[3px] border-[#17152b]"
+                        style={{ background: c.field }}
+                      >
+                        <svg viewBox="0 0 64 64" className="h-11 w-11" aria-hidden>
+                          {c.art}
+                        </svg>
                       </span>
                       <span className="min-w-0">
-                        <span className="block font-medium">{c.label}</span>
-                        <span className="mt-0.5 block text-xs text-[#f4ead9]/50">
+                        <span className="block font-[family-name:var(--font-display)] text-xl leading-tight">
+                          {c.label}
+                        </span>
+                        <span className="mt-1 block text-sm leading-snug text-[#17152b]/70">
                           {c.sub}
                         </span>
                       </span>
                       <span
                         aria-hidden
-                        className={`ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition ${
-                          isSelected ? "border-[#e8a0b4]" : "border-[#f4ead9]/25"
+                        className={`ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-[3px] border-[#17152b] ${
+                          isSelected ? "bg-[#d2442e]" : "bg-transparent"
                         }`}
                       >
                         {isSelected && (
-                          <span className="h-2.5 w-2.5 rounded-full bg-[#e8a0b4]" />
+                          <svg viewBox="0 0 12 12" className="h-3 w-3">
+                            <path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="#f2e8cf" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
                         )}
                       </span>
                     </div>
@@ -158,25 +205,22 @@ export default function ReadingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: reduce ? 0 : 0.3 }}
-                className="mt-8"
+                className="mt-10"
               >
                 {isRandom ? (
-                  <div className="rounded-2xl border border-[#f4ead9]/15 bg-[#f4ead9]/[0.03] p-6">
-                    <p className="font-[family-name:var(--font-display)] text-xl italic">
+                  <div className="rounded-2xl border-[3px] border-[#17152b] bg-[#eaae2c] p-6 text-[#17152b] shadow-[6px_6px_0_#17152b]">
+                    <p className="font-[family-name:var(--font-display)] text-2xl">
                       No question? No problem.
                     </p>
-                    <p className="mt-1 text-sm text-[#f4ead9]/60">
+                    <p className="mt-1 text-base">
                       We&apos;ll let the cards decide what you need to hear.
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <label
-                      htmlFor="question"
-                      className="mb-3 block text-sm text-[#f4ead9]/75"
-                    >
+                    <label htmlFor="question" className="mb-3 block text-lg font-medium">
                       What&apos;s on your mind?{" "}
-                      <span className="text-[#f4ead9]/40">(optional)</span>
+                      <span className="font-normal text-[#f2e8cf]/70">(optional)</span>
                     </label>
                     <textarea
                       id="question"
@@ -193,7 +237,7 @@ export default function ReadingPage() {
                           ? `e.g. "what should I know about my ${selectedCategory.label.toLowerCase()} situation?"`
                           : ""
                       }
-                      className="w-full resize-none rounded-2xl border border-[#f4ead9]/15 bg-[#f4ead9]/[0.03] px-5 py-4 text-sm text-[#f4ead9] outline-none transition placeholder:text-[#f4ead9]/30 focus:border-[#e8a0b4]/60 focus:ring-2 focus:ring-[#e8a0b4]/30"
+                      className="w-full resize-none rounded-2xl border-[3px] border-[#17152b] bg-[#f2e8cf] px-5 py-4 text-base text-[#17152b] shadow-[6px_6px_0_#17152b] outline-none transition placeholder:text-[#17152b]/45 focus:ring-4 focus:ring-[#eaae2c]"
                     />
                   </div>
                 )}
@@ -201,7 +245,7 @@ export default function ReadingPage() {
                 <button
                   type="button"
                   onClick={start}
-                  className="mt-6 rounded-full bg-[#f4ead9] px-8 py-4 text-sm font-medium text-[#1a1329] shadow-xl shadow-black/30 transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8a0b4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#120d1c] active:translate-y-0"
+                  className="mt-8 rounded-full border-[3px] border-[#17152b] bg-[#eaae2c] px-8 py-4 text-base font-semibold text-[#17152b] shadow-[5px_5px_0_#17152b] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#17152b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#f2e8cf] active:translate-x-1 active:translate-y-1 active:shadow-none"
                 >
                   Let&apos;s pull some cards
                 </button>
@@ -210,9 +254,7 @@ export default function ReadingPage() {
           </AnimatePresence>
         </div>
 
-        <p className="text-xs text-[#f4ead9]/40">
-          Take what resonates, leave what doesn&apos;t. ♡
-        </p>
+        <p className="text-sm text-[#f2e8cf]/70">Take what resonates, leave what doesn&apos;t.</p>
       </div>
     </main>
   );

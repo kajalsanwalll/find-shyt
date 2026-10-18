@@ -5,10 +5,50 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
+import { Gloock, Instrument_Sans } from "next/font/google";
 import { tarotCards } from "@/lib/tarot";
-import { Shell, CardBack } from "@/components/shell";
+
+const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-display" });
+const body = Instrument_Sans({ subsets: ["latin"], variable: "--font-body" });
+
+/*
+  Palette (shared with the other pages): ink #17152b, bone #f2e8cf, cobalt #2b4bb0,
+  ochre #eaae2c, vermilion #d2442e
+*/
 
 const STACK = 7;
+
+/* Card back in the same printed style as the home page deck. Fills its parent. */
+function CardBack() {
+  return (
+    <div className="h-full w-full rounded-[14px] border-[3px] border-[#17152b] bg-[#f2e8cf] p-2 shadow-[4px_4px_0_#17152b]">
+      <div className="h-full rounded-lg border-2 border-[#17152b] p-1.5">
+        <svg
+          viewBox="0 0 100 150"
+          className="h-full w-full rounded"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden
+        >
+          <rect width="100" height="150" fill="#17152b" />
+          {Array.from({ length: 5 }, (_, i) => (
+            <circle
+              key={i}
+              cx="50"
+              cy="75"
+              r={10 + i * 13}
+              fill="none"
+              stroke={i % 2 ? "#eaae2c" : "#d2442e"}
+              strokeWidth="2"
+            />
+          ))}
+          <path d="M50 20l7 55-7 55-7-55z" fill="#f2e8cf" />
+          <path d="M10 75l40-7 40 7-40 7z" fill="#2b4bb0" />
+          <circle cx="50" cy="75" r="6" fill="#eaae2c" stroke="#17152b" strokeWidth="2" />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 export default function DeckPage() {
   const router = useRouter();
@@ -41,13 +81,19 @@ export default function DeckPage() {
   };
 
   return (
-    <Shell>
+    <main
+      className={`${display.variable} ${body.variable} min-h-screen bg-[#2b4bb0] font-[family-name:var(--font-body)] text-[#f2e8cf]`}
+      style={{
+        backgroundImage: "radial-gradient(rgba(242,232,207,0.16) 1.5px, transparent 1.5px)",
+        backgroundSize: "34px 34px",
+      }}
+    >
       <div className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 py-16 text-center">
         <div aria-live="polite">
-          <h1 className="font-[family-name:var(--font-display)] text-5xl leading-tight tracking-tight sm:text-6xl">
+          <h1 className="font-[family-name:var(--font-display)] text-5xl leading-tight sm:text-7xl">
             {shuffling ? "The universe is shuffling." : "Let's shuffle."}
           </h1>
-          <p className="mx-auto mt-5 max-w-md text-[#f4ead9]/60">
+          <p className="mx-auto mt-5 max-w-md text-lg text-[#f2e8cf]/85">
             {shuffling
               ? "Trust the process. Your cards are finding their place."
               : "Take a breath. Think about your question. Then shuffle."}
@@ -97,13 +143,13 @@ export default function DeckPage() {
           type="button"
           onClick={shuffle}
           disabled={shuffling}
-          className="rounded-full bg-[#f4ead9] px-8 py-4 text-sm font-medium text-[#1a1329] shadow-xl shadow-black/30 transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8a0b4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#120d1c] disabled:translate-y-0 disabled:cursor-default disabled:opacity-50"
+          className="rounded-full border-[3px] border-[#17152b] bg-[#eaae2c] px-8 py-4 text-base font-semibold text-[#17152b] shadow-[5px_5px_0_#17152b] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#17152b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#f2e8cf] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:translate-x-0 disabled:translate-y-0 disabled:cursor-default disabled:opacity-60 disabled:shadow-[5px_5px_0_#17152b]"
         >
           {shuffling ? "Shuffling…" : "Shuffle the deck"}
         </button>
 
-        <p className="mt-12 text-xs text-[#f4ead9]/40">There are no wrong cards.</p>
+        <p className="mt-12 text-sm text-[#f2e8cf]/70">There are no wrong cards.</p>
       </div>
-    </Shell>
+    </main>
   );
 }
