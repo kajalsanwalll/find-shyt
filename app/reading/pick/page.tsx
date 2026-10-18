@@ -7,7 +7,13 @@ import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Gloock, Instrument_Sans } from "next/font/google";
 import { tarotCards, type TarotCard } from "@/lib/tarot";
-import { spreads, DEFAULT_SPREAD, isSpreadId, type Spread } from "@/lib/spreads";
+import {
+  spreads,
+  DEFAULT_SPREAD,
+  isSpreadId,
+  type Spread,
+  type SpreadId,
+} from "@/lib/spreads";
 
 const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-display" });
 const body = Instrument_Sans({ subsets: ["latin"], variable: "--font-body" });
@@ -80,8 +86,13 @@ export default function PickPage() {
       const saved = sessionStorage.getItem("shuffledDeck");
       const parsed = saved ? JSON.parse(saved) : null;
       if (Array.isArray(parsed) && parsed.length === tarotCards.length) {
-        const reading = JSON.parse(sessionStorage.getItem("reading") || "{}");
-        if (isSpreadId(reading.spread)) setSpread(spreads[reading.spread]);
+        const reading: { spread?: unknown } = JSON.parse(
+  sessionStorage.getItem("reading") || "{}"
+);
+
+if (isSpreadId(reading.spread)) {
+  setSpread(spreads[reading.spread]);
+}
         setDeck(parsed);
         setReady(true);
         return;

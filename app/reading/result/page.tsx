@@ -1,7 +1,5 @@
 "use client";
 
-// app/reading/result/page.tsx
-
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -9,31 +7,52 @@ import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { Gloock, Instrument_Sans } from "next/font/google";
 import { tarotCards } from "@/lib/tarot";
-import { spreads, isSpreadId, type Spread } from "@/lib/spreads";
-// Move the three data blocks out of this file into lib/interpretations.ts and export them.
+import {
+  spreads,
+  DEFAULT_SPREAD,
+  isSpreadId,
+  type SpreadId,
+  type Spread,
+} from "@/lib/spreads";
 import {
   interpretations,
   categoryInterpretations,
   overallMessages,
 } from "@/lib/interpretations";
 
-const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-display" });
-const body = Instrument_Sans({ subsets: ["latin"], variable: "--font-body" });
+const display = Gloock({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display",
+});
 
-/*
-  Palette (shared with the other pages): ink #17152b, bone #f2e8cf, cobalt #2b4bb0,
-  ochre #eaae2c, vermilion #d2442e, sage #7fae93
-*/
+const body = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+/**
+ * Palette: ink #17152b, bone #f2e8cf, cobalt #2b4bb0,
+ * ochre #eaae2c, vermilion #d2442e, sage #7fae93
+ */
 
 const pageClass = `${display.variable} ${body.variable} min-h-screen bg-[#2b4bb0] font-[family-name:var(--font-body)] text-[#f2e8cf]`;
+
 const dots = {
-  backgroundImage: "radial-gradient(rgba(242,232,207,0.16) 1.5px, transparent 1.5px)",
+  backgroundImage:
+    "radial-gradient(rgba(242,232,207,0.16) 1.5px, transparent 1.5px)",
   backgroundSize: "34px 34px",
 };
 
 type Time = "Past" | "Present" | "Future";
 
-// Which of the Past / Present / Future interpretations each position borrows from
+type ReadingData = {
+  spread?: unknown;
+  selectedCards?: unknown;
+  category?: unknown;
+  question?: unknown;
+};
+
 const timeFor: Record<string, Time> = {
   Past: "Past",
   Present: "Present",
@@ -68,7 +87,8 @@ const buttonClass =
 export default function ResultPage() {
   const router = useRouter();
   const reduce = useReducedMotion();
-  const [reading, setReading] = useState<any>(null);
+
+  const [reading, setReading] = useState<ReadingData | null>(null);
   const [deck, setDeck] = useState(tarotCards);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -78,14 +98,26 @@ export default function ResultPage() {
       const savedDeck = sessionStorage.getItem("shuffledDeck");
 
       if (savedDeck) {
-        const parsedDeck = JSON.parse(savedDeck);
-        if (Array.isArray(parsedDeck) && parsedDeck.length === tarotCards.length) {
+        const parsedDeck: unknown = JSON.parse(savedDeck);
+
+        if (
+          Array.isArray(parsedDeck) &&
+          parsedDeck.length === tarotCards.length
+        ) {
           setDeck(parsedDeck);
         }
       }
 
       if (stored) {
-        setReading(JSON.parse(stored));
+        const parsedReading: unknown = JSON.parse(stored);
+
+        if (
+          parsedReading !== null &&
+          typeof parsedReading === "object" &&
+          !Array.isArray(parsedReading)
+        ) {
+          setReading(parsedReading as ReadingData);
+        }
       }
     } catch {
       console.error("Could not load your tarot reading.");
@@ -96,18 +128,27 @@ export default function ResultPage() {
 
   if (!isLoaded) {
     return (
-      <main className={`${pageClass} flex items-center justify-center`} style={dots}>
-        <p className="text-lg text-[#f2e8cf]/85">gathering your cards...</p>
+      <main
+        className={`${pageClass} flex items-center justify-center`}
+        style={dots}
+      >
+        <p className="text-lg text-[#f2e8cf]/85">
+          gathering your cards...
+        </p>
       </main>
     );
   }
 
   if (!reading) {
     return (
-      <main className={`${pageClass} flex flex-col items-center justify-center px-6`} style={dots}>
+      <main
+        className={`${pageClass} flex flex-col items-center justify-center px-6`}
+        style={dots}
+      >
         <p className="font-[family-name:var(--font-display)] text-3xl">
           your cards are hiding from us.
         </p>
+
         <Link href="/reading" className={`${buttonClass} mt-8`}>
           Start a new reading
         </Link>
@@ -116,29 +157,41 @@ export default function ResultPage() {
   }
 
   const selectedCards: number[] = Array.isArray(reading.selectedCards)
-    ? reading.selectedCards
+    ? reading.selectedCards.filter(
+        (index): index is number =>
+          typeof index === "number" &&
+          Number.isInteger(index) &&
+          index >= 0 &&
+          index < deck.length
+      )
     : [];
 
-  // Spread saved by the pick page; older sessions fall back to the number of cards picked.
-  const spread: Spread = isSpreadId(reading.spread)
-    ? spreads[reading.spread]
+  // Validate the stored spread before using it as a Record key.
+  // Older sessions fall back to the number of selected cards.
+  const spreadId: SpreadId = isSpreadId(reading.spread)
+    ? reading.spread
     : selectedCards.length === 1
-    ? spreads.one
-    : selectedCards.length === 5
-    ? spreads.cross
-    : spreads.three;
+      ? "one"
+      : selectedCards.length === 5
+        ? "cross"
+        : DEFAULT_SPREAD;
+
+  const spread: Spread = spreads[spreadId];
 
   const category =
-    typeof reading.category === "string" && overallMessages[reading.category]
+    typeof reading.category === "string" &&
+    Object.prototype.hasOwnProperty.call(
+      overallMessages,
+      reading.category
+    )
       ? reading.category
       : "random";
 
   const messages = overallMessages[category];
-
   const overallMessage =
     messages[
       selectedCards.reduce(
-        (sum, cardIndex) => sum + (Number.isInteger(cardIndex) ? cardIndex : 0),
+        (sum, cardIndex) => sum + cardIndex,
         0
       ) % messages.length
     ];
@@ -146,7 +199,10 @@ export default function ResultPage() {
   const fade = (delay: number) => ({
     initial: reduce ? false : { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    transition: { delay: reduce ? 0 : delay, duration: reduce ? 0 : 0.4 },
+    transition: {
+      delay: reduce ? 0 : delay,
+      duration: reduce ? 0 : 0.4,
+    },
   });
 
   return (
@@ -154,21 +210,26 @@ export default function ResultPage() {
       <div className="mx-auto max-w-4xl px-6 py-16">
         {/* HEADER */}
         <motion.header {...fade(0)} className="text-center">
-          <p className="mb-4 text-lg text-[#f2e8cf]/85">okay... let&apos;s see</p>
+          <p className="mb-4 text-lg text-[#f2e8cf]/85">
+            okay... let&apos;s see
+          </p>
+
           <h1 className="font-[family-name:var(--font-display)] text-6xl sm:text-8xl">
             your reading.
           </h1>
-          {reading.question && (
-            <p className="mx-auto mt-8 max-w-xl rounded-2xl border-[3px] border-[#17152b] bg-[#f2e8cf] px-6 py-4 text-base leading-7 text-[#17152b] shadow-[5px_5px_0_#17152b]">
-              &ldquo;{reading.question}&rdquo;
-            </p>
-          )}
+
+          {typeof reading.question === "string" &&
+            reading.question.trim() !== "" && (
+              <p className="mx-auto mt-8 max-w-xl rounded-2xl border-[3px] border-[#17152b] bg-[#f2e8cf] px-6 py-4 text-base leading-7 text-[#17152b] shadow-[5px_5px_0_#17152b]">
+                &ldquo;{reading.question}&rdquo;
+              </p>
+            )}
         </motion.header>
 
         {/* CARDS */}
         <div className="mt-16 space-y-10">
           {selectedCards.map((cardIndex, index) => {
-            // IMPORTANT: Look up the card in the SAME shuffled deck.
+            // Always use the same shuffled deck used during card selection.
             const card = deck[cardIndex];
             const positionName = spread.positions[index];
 
@@ -189,7 +250,7 @@ export default function ResultPage() {
                 className="rounded-3xl border-[3px] border-[#17152b] bg-[#f2e8cf] p-6 text-[#17152b] shadow-[8px_8px_0_#17152b] sm:p-8"
               >
                 <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start">
-                  {/* ACTUAL TAROT CARD IMAGE */}
+                  {/* TAROT CARD IMAGE */}
                   <div className="relative aspect-[2/3] w-40 shrink-0 overflow-hidden rounded-xl border-[3px] border-[#17152b] bg-[#e9dfd1] shadow-[5px_5px_0_#17152b] sm:w-44">
                     <Image
                       src={card.image}
@@ -205,7 +266,10 @@ export default function ResultPage() {
                   <div className="text-center sm:text-left">
                     <span
                       className="inline-block rounded-full border-[3px] border-[#17152b] px-4 py-1 text-sm font-semibold"
-                      style={{ background: pill.bg, color: pill.fg }}
+                      style={{
+                        background: pill.bg,
+                        color: pill.fg,
+                      }}
                     >
                       {positionName}
                     </span>
@@ -214,9 +278,13 @@ export default function ResultPage() {
                       {card.name}
                     </h2>
 
-                    <p className="mt-2 text-base text-[#17152b]/70">{intros[positionName]}.</p>
+                    <p className="mt-2 text-base text-[#17152b]/70">
+                      {intros[positionName]}.
+                    </p>
 
-                    <p className="mt-5 text-lg leading-8">{interpretation}</p>
+                    <p className="mt-5 text-lg leading-8">
+                      {interpretation}
+                    </p>
                   </div>
                 </div>
               </motion.article>
@@ -235,25 +303,34 @@ export default function ResultPage() {
             okay... here&apos;s the thing.
           </h2>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8">{overallMessage}</p>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8">
+            {overallMessage}
+          </p>
 
           <div className="mx-auto mt-8 h-[3px] w-16 bg-[#17152b]" />
 
           <p className="mt-6 text-sm font-medium">
-            {spread.positions.join(" \u00b7 ").toLowerCase()}
+            {spread.positions.join(" · ").toLowerCase()}
           </p>
         </motion.section>
 
         {/* ENDING */}
-        <motion.div {...fade(0.5 + selectedCards.length * 0.15)} className="mt-16 text-center">
-          <p className="font-[family-name:var(--font-display)] text-3xl">take what resonates.</p>
-
-          <p className="mx-auto mt-3 max-w-md text-lg leading-7 text-[#f2e8cf]/85">
-            The cards aren&apos;t here to decide your life for you. They&apos;re just giving you
-            something to think about.
+        <motion.div
+          {...fade(0.5 + selectedCards.length * 0.15)}
+          className="mt-16 text-center"
+        >
+          <p className="font-[family-name:var(--font-display)] text-3xl">
+            take what resonates.
           </p>
 
-          <p className="mt-8 text-sm text-[#f2e8cf]/70">for reflection, fun & a little delusion</p>
+          <p className="mx-auto mt-3 max-w-md text-lg leading-7 text-[#f2e8cf]/85">
+            The cards aren&apos;t here to decide your life for you.
+            They&apos;re just giving you something to think about.
+          </p>
+
+          <p className="mt-8 text-sm text-[#f2e8cf]/70">
+            for reflection, fun &amp; a little delusion
+          </p>
 
           <button
             type="button"
@@ -262,8 +339,9 @@ export default function ResultPage() {
                 sessionStorage.removeItem("reading");
                 sessionStorage.removeItem("shuffledDeck");
               } catch {
-                // storage blocked; nothing to clear
+                // Storage may be blocked.
               }
+
               router.push("/reading");
             }}
             className={`${buttonClass} mt-8`}
