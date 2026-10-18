@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { tarotCards } from "@/lib/tarot";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -332,17 +332,17 @@ export default function ResultPage() {
                 <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
                   {/* CARD */}
 
-                  <div className="flex h-40 w-28 shrink-0 flex-col items-center justify-between rounded-2xl border border-purple-200/20 bg-[#e9dfd1] p-4 text-[#241a31]">
-                    <span className="text-xs opacity-50">
-                      {card.symbol}
-                    </span>
-
-                    <span className="text-4xl">{card.icon}</span>
-
-                    <span className="text-center font-serif text-xs">
-                      {card.name}
-                    </span>
-                  </div>
+                  {/* ACTUAL TAROT CARD IMAGE */}
+<div className="relative aspect-[2/3] w-36 shrink-0 overflow-hidden rounded-2xl border border-purple-200/20 bg-[#e9dfd1] shadow-xl shadow-black/20">
+  <Image
+    src={card.image}
+    alt={card.name}
+    fill
+    sizes="144px"
+    className="object-cover"
+    priority={index === 0}
+  />
+</div>
 
                   {/* READING */}
 
@@ -432,5 +432,5 @@ export default function ResultPage() {
 </motion.div>
       </div>
     </main>
-  );
+  );  
 }
