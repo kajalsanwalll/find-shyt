@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# find.shyt 🔮
 
-## Getting Started
+A little tarot-reading website I built for fun.
 
-First, run the development server:
+Sometimes you just want to ask the universe a question, pick a few cards, and see what they have to say. That's pretty much the idea behind **find.shyt**.
+
+It's a small interactive project where you can choose your own tarot cards, explore their meanings, and get a reading based on what you're curious about.
+
+No serious predictions, no pressure. Just a little mystery and something to think about.
+
+## What you can do
+
+- Choose between a one-card reading, a three-card Past / Present / Future spread, or a five-card cross spread.
+- Pick cards from a shuffled deck and reveal them one by one.
+- Explore different reading categories, including love, career, friendship, and life.
+- Ask a specific question before starting your reading.
+- Discover card interpretations and an overall message.
+- Enjoy a little animation and a visual style inspired by tarot cards, printed illustrations, and bold colours.
+
+## 🛠️ Built with
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+
+## Run it locally
+
+Clone the repository:
+
+```bash
+git clone YOUR_REPOSITORY_URL
+cd YOUR_PROJECT_FOLDER
+```
+
+Install the dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see it running.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To create a production build:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+## Why I built it
 
-To learn more about Next.js, take a look at the following resources:
+I wanted to make something a little different from the usual projects I work on. I liked the idea of combining a simple interactive experience with a bit of mystery, thoughtful design, and playful writing.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Building it also gave me a chance to work with animations, client-side state, TypeScript, and the challenge of keeping a user's selected cards consistent throughout the reading.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+It's still a work in progress, and there's plenty more I'd love to add.
 
-## Deploy on Vercel
+## A little note
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project is just for entertainment and self-reflection. Take what resonates, leave what doesn't, and remember that your future is yours to shape.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+*made with code, curiosity, and a little delusion. 🖤*
