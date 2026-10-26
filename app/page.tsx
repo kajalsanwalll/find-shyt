@@ -297,7 +297,7 @@ export default function Home() {
       <section className="mx-auto grid w-full max-w-6xl items-center gap-14 px-6 pb-20 pt-16 lg:grid-cols-[1.1fr_1fr] lg:pt-24">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-6xl leading-[0.95] sm:text-7xl lg:text-[6.5rem]">
-            Pull a card. Take a breath.
+            Pull a card to feel free.
           </h1>
           <p className="mt-8 max-w-md text-lg leading-7 text-[#f2e8cf]/85">
             Think of something that&apos;s been sitting on your heart. Turn over a card and notice
@@ -343,17 +343,17 @@ export default function Home() {
       </section>
 
       {/* how it reads */}
-      <section className="mx-auto grid max-w-6xl gap-10 px-6 py-20 md:grid-cols-[1fr_1.2fr] md:items-start">
+      <section className="mx-auto grid max-w-7xl gap-10 px-6 py-20 md:grid-cols-[1fr_1.2fr] md:items-start">
         <h2 className="font-[family-name:var(--font-display)] text-4xl leading-tight sm:text-5xl">
-          The cards don&apos;t know your future. You know your heart.
+          I dont know if it'll resonate or not but it'll definitely feed your soul and delusions, hehe!
         </h2>
         <div className="space-y-5 text-lg leading-8 text-[#f2e8cf]/90">
           <p>
-            Each card is a picture people have been finding themselves in for hundreds of years.
-            When one lands beside your question, you often realize you already knew.
+            I am not a professional tarot reader and i dont claim that i have put any 
+            energies in my cards here that would definitely sit right with your situation.
           </p>
           <p>
-            Keep whatever feels true and let the rest drift away. Be gentle with yourself here.
+            But what's the harm in checking it out?
           </p>
         </div>
       </section>
@@ -362,7 +362,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <div className="flex flex-col items-start justify-between gap-8 rounded-3xl border-[3px] border-[#17152b] bg-[#d2442e] p-8 shadow-[8px_8px_0_#17152b] sm:flex-row sm:items-center sm:p-12">
           <p className="max-w-md font-[family-name:var(--font-display)] text-3xl leading-tight sm:text-4xl">
-            Whatever you&apos;re carrying today, you can set it down here for a moment.
+            Lesgo?
           </p>
           <Link
             href="/reading"
