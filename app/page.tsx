@@ -30,7 +30,7 @@ const deck: Arcana[] = [
   {
     numeral: "XVIII",
     name: "The Moon",
-    meaning: "Not everything is visible yet. Trust your gut, and wait for daylight before deciding.",
+    meaning: "Not everything is clear yet, and that's okay. Listen to your gut, and let the morning light help you decide.",
     field: "#2b4bb0",
     art: (
       <>
@@ -43,7 +43,7 @@ const deck: Arcana[] = [
   {
     numeral: "XVII",
     name: "The Star",
-    meaning: "Hope is returning, slowly. Rest, refill, and let yourself believe things can improve.",
+    meaning: "Hope is finding its way back to you, softly. Rest, fill your cup, and let yourself believe it can get better.",
     field: "#eaae2c",
     art: (
       <>
@@ -57,7 +57,7 @@ const deck: Arcana[] = [
   {
     numeral: "XIX",
     name: "The Sun",
-    meaning: "Warmth, clarity, a win you earned. Say yes to the good thing without apologizing.",
+    meaning: "Warmth, joy, something good you've earned. You're allowed to say yes to it without apologizing.",
     field: "#d2442e",
     art: (
       <>
@@ -74,7 +74,7 @@ const deck: Arcana[] = [
   {
     numeral: "IX",
     name: "The Hermit",
-    meaning: "Step back from the noise. The answer you need is already quiet inside you.",
+    meaning: "It's okay to step away from the noise for a while. What you're looking for is already quietly there inside you.",
     field: "#7fae93",
     art: (
       <>
@@ -88,7 +88,7 @@ const deck: Arcana[] = [
   {
     numeral: "VI",
     name: "The Lovers",
-    meaning: "A choice that comes from the heart. Be honest about what you actually want.",
+    meaning: "A choice that comes from the heart. Be tender and honest with yourself about what you truly want.",
     field: "#eaae2c",
     art: (
       <>
@@ -101,7 +101,7 @@ const deck: Arcana[] = [
   {
     numeral: "X",
     name: "Wheel of Fortune",
-    meaning: "Things are turning. Resist the urge to grip; change is on your side this time.",
+    meaning: "Things are turning. Loosen your grip a little. This time, the change is coming to help you.",
     field: "#d2442e",
     art: (
       <>
@@ -120,19 +120,19 @@ const spreads = [
   {
     id: "one",
     name: "One card",
-    when: "For a quick nudge or a daily check-in.",
+    when: "A small, quiet nudge for today.",
     cells: [[1, 1]],
   },
   {
     id: "three",
     name: "Three cards",
-    when: "Past, present, future. Good for \u201cwhat\u2019s going on here?\u201d",
+    when: "Where you've been, where you are, and where you might be headed.",
     cells: [[0, 1], [1, 1], [2, 1]],
   },
   {
     id: "cross",
-    name: "The cross",
-    when: "Five cards for when you feel stuck between options.",
+    name: "The crossroads",
+    when: "Five cards, for when your heart is pulling in two directions.",
     cells: [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]],
   },
 ];
@@ -254,7 +254,7 @@ function Draw() {
           </p>
         ) : (
           <p className="text-base leading-6 text-[#f2e8cf]/80">
-            Think of a question, then tap the deck.
+            Hold what's on your heart for a moment, then tap the deck.
           </p>
         )}
       </div>
@@ -297,20 +297,20 @@ export default function Home() {
       <section className="mx-auto grid w-full max-w-6xl items-center gap-14 px-6 pb-20 pt-16 lg:grid-cols-[1.1fr_1fr] lg:pt-24">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-6xl leading-[0.95] sm:text-7xl lg:text-[6.5rem]">
-            Tarot, but make it free.
+            Pull a card. Take a breath.
           </h1>
           <p className="mt-8 max-w-md text-lg leading-7 text-[#f2e8cf]/85">
-            No deck, no subscription, no pressure. Ask something that&apos;s on your mind and
-            we&apos;ll deal you a reading you can sit with.
+            Think of something that&apos;s been sitting on your heart. Turn over a card and notice
+            what it stirs in you. There&apos;s no right answer here, only what feels true.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-5">
             <Link
               href="/reading"
               className="rounded-full border-[3px] border-[#17152b] bg-[#eaae2c] px-8 py-4 text-base font-semibold text-[#17152b] shadow-[5px_5px_0_#17152b] transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#17152b] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#f2e8cf] active:translate-x-1 active:translate-y-1 active:shadow-none"
             >
-              Start a reading
+              Sit down with the cards
             </Link>
-            <span className="text-sm text-[#f2e8cf]/70">Free, and no sign-up.</span>
+            <span className="text-sm text-[#f2e8cf]/70">Take all the time you need.</span>
           </div>
         </div>
 
@@ -321,7 +321,7 @@ export default function Home() {
       <section className="border-y-[3px] border-[#17152b] bg-[#f2e8cf] text-[#17152b]">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <h2 className="max-w-lg font-[family-name:var(--font-display)] text-4xl leading-tight sm:text-5xl">
-            Pick how many cards you want.
+            How much do you want to hear today?
           </h2>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {spreads.map((s, i) => (
@@ -345,16 +345,15 @@ export default function Home() {
       {/* how it reads */}
       <section className="mx-auto grid max-w-6xl gap-10 px-6 py-20 md:grid-cols-[1fr_1.2fr] md:items-start">
         <h2 className="font-[family-name:var(--font-display)] text-4xl leading-tight sm:text-5xl">
-          Cards don&apos;t predict. They prompt.
+          The cards don&apos;t know your future. You know your heart.
         </h2>
         <div className="space-y-5 text-lg leading-8 text-[#f2e8cf]/90">
           <p>
-            Each card is an image with a few centuries of meaning attached. When one lands next to
-            your question, you notice what you already half-knew.
+            Each card is a picture people have been finding themselves in for hundreds of years.
+            When one lands beside your question, you often realize you already knew.
           </p>
           <p>
-            Take what resonates and leave the rest. This is for reflection, fun, and a little
-            delusion.
+            Keep whatever feels true and let the rest drift away. Be gentle with yourself here.
           </p>
         </div>
       </section>
@@ -363,19 +362,19 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <div className="flex flex-col items-start justify-between gap-8 rounded-3xl border-[3px] border-[#17152b] bg-[#d2442e] p-8 shadow-[8px_8px_0_#17152b] sm:flex-row sm:items-center sm:p-12">
           <p className="max-w-md font-[family-name:var(--font-display)] text-3xl leading-tight sm:text-4xl">
-            Got a question in mind? The deck is ready.
+            Whatever you&apos;re carrying today, you can set it down here for a moment.
           </p>
           <Link
             href="/reading"
             className="shrink-0 rounded-full border-[3px] border-[#17152b] bg-[#f2e8cf] px-8 py-4 text-base font-semibold text-[#17152b] transition hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#eaae2c]"
           >
-            Pull some cards
+            Pull a card
           </Link>
         </div>
       </section>
 
       <footer className="border-t-[3px] border-[#17152b] bg-[#17152b] px-6 py-6 text-center text-xs leading-5 text-[#f2e8cf]/70">
-        For reflection, fun and a little delusion. Take what resonates, leave what doesn&apos;t.
+        Made with care, for quiet moments. Keep what rings true, and leave the rest.
       </footer>
     </main>
   );
